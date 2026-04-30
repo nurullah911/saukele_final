@@ -319,9 +319,9 @@ paths:
         "409": { description: Gift already fully funded, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
         "500": { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
 
-  /contributions/webhook/kaspi:
+  /contributions/webhook/payment:
     post:
-      summary: Kaspi Pay webhook — confirms a payment
+      summary: Pay webhook — confirms a payment
       tags: [Contributions]
       requestBody:
         required: true

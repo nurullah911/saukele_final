@@ -8,6 +8,6 @@ const { contributionLimiter } = require('../middleware/rateLimit');
 const router = express.Router();
 
 router.post('/', requireAuth, requireRole('GUEST'), contributionLimiter, asyncHandler(controller.createContribution));
-router.post('/webhook/kaspi', asyncHandler(controller.paymentWebhook));
+router.post('/webhook/payment', asyncHandler(controller.paymentWebhook));
 
 module.exports = router;
