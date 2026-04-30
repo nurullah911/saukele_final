@@ -1,0 +1,279 @@
+{
+  "info": {
+    "name": "Saukele Sprint 1 API",
+    "_postman_id": "saukele-sprint1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:3000/api" },
+    { "key": "coupleToken",  "value": "" },
+    { "key": "guestToken",   "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "registryId",   "value": "" },
+    { "key": "shareToken",   "value": "" },
+    { "key": "singleGiftId", "value": "" },
+    { "key": "poolGiftId",   "value": "" },
+    { "key": "coupleId",     "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Couple",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"couple@example.com\",\n  \"name\": \"Asel and Daniyar\",\n  \"password\": \"Password123\",\n  \"role\": \"COUPLE\"\n}" }
+          }
+        },
+        {
+          "name": "Register Guest",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"guest@example.com\",\n  \"name\": \"Bekzat Almas\",\n  \"password\": \"Password123\",\n  \"role\": \"GUEST\"\n}" }
+          }
+        },
+        {
+          "name": "Login Couple",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('coupleToken', pm.response.json().accessToken);", "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"couple@example.com\",\n  \"password\": \"Password123\"\n}" }
+          }
+        },
+        {
+          "name": "Login Guest",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('guestToken', pm.response.json().accessToken);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"guest@example.com\",\n  \"password\": \"Password123\"\n}" }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/refresh",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/auth/logout",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "403 — Guest tries Couple route",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/registries",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Should fail\",\n  \"eventDate\": \"2026-08-01\"\n}" }
+          }
+        },
+        {
+          "name": "401 — No token",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/registries"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registry",
+      "item": [
+        {
+          "name": "Create Registry",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('registryId', pm.response.json().id);", "pm.collectionVariables.set('shareToken', pm.response.json().shareToken);", "pm.collectionVariables.set('coupleId', pm.response.json().coupleId);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/registries",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Asel & Daniyar Wedding\",\n  \"eventDate\": \"2026-08-15\",\n  \"description\": \"Our beautiful wedding registry\"\n}" }
+          }
+        },
+        {
+          "name": "List Own Registries",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/registries"
+          }
+        },
+        {
+          "name": "Publish Registry",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/registries/{{registryId}}/publish"
+          }
+        },
+        {
+          "name": "Public View by Share Token",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/registries/share/{{shareToken}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gifts",
+      "item": [
+        {
+          "name": "Add SINGLE Gift",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('singleGiftId', pm.response.json().id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/gifts",
+            "body": { "mode": "raw", "raw": "{\n  \"registryId\": {{registryId}},\n  \"title\": \"Tea Set\",\n  \"priceKzt\": 25000,\n  \"giftType\": \"SINGLE\",\n  \"category\": \"Home\"\n}" }
+          }
+        },
+        {
+          "name": "Add POOL Gift",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('poolGiftId', pm.response.json().id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/gifts",
+            "body": { "mode": "raw", "raw": "{\n  \"registryId\": {{registryId}},\n  \"title\": \"Honeymoon Fund\",\n  \"priceKzt\": 500000,\n  \"giftType\": \"POOL\",\n  \"category\": \"Travel\"\n}" }
+          }
+        },
+        {
+          "name": "Get Gift (with funding progress)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/gifts/{{singleGiftId}}"
+          }
+        },
+        {
+          "name": "Reserve SINGLE Gift (Guest)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/gifts/{{singleGiftId}}/reserve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contributions",
+      "item": [
+        {
+          "name": "Contribute to POOL Gift — KZT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/contributions",
+            "body": { "mode": "raw", "raw": "{\n  \"giftId\": {{poolGiftId}},\n  \"amountKzt\": 10000,\n  \"originalCurrency\": \"KZT\",\n  \"amountOriginal\": 10000,\n  \"message\": \"Congratulations!\"\n}" }
+          }
+        },
+        {
+          "name": "Contribute to POOL Gift — EUR (currency snapshot)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/contributions",
+            "body": { "mode": "raw", "raw": "{\n  \"giftId\": {{poolGiftId}},\n  \"amountKzt\": 51000,\n  \"originalCurrency\": \"EUR\",\n  \"amountOriginal\": 100,\n  \"message\": \"From Germany with love!\"\n}" }
+          }
+        },
+        {
+          "name": "Webhook — Payment SUCCESS",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "x-saukele-signature", "value": "SET_HMAC_SHA256_HERE" }],
+            "url": "{{baseUrl}}/contributions/webhook/kaspi",
+            "body": { "mode": "raw", "raw": "{\n  \"paymentRef\": \"REPLACE_WITH_PAYMENT_REF\",\n  \"status\": \"SUCCESS\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kinship",
+      "item": [
+        {
+          "name": "Set Kinship (Guest → Couple)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/kinship",
+            "body": { "mode": "raw", "raw": "{\n  \"coupleId\": {{coupleId}},\n  \"kinshipType\": \"TUYS\"\n}" }
+          }
+        },
+        {
+          "name": "Get Kinship + Suggested Amount",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/kinship/{{coupleId}}"
+          }
+        },
+        {
+          "name": "Update Kinship",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{guestToken}}" }],
+            "url": "{{baseUrl}}/kinship/{{coupleId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"kinshipType\": \"DOSY\"\n}" }
+          }
+        },
+        {
+          "name": "Family Tree — Recursive CTE",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/kinship/tree/{{coupleId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List All Users (Admin only)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{coupleToken}}" }],
+            "url": "{{baseUrl}}/admin/users",
+            "description": "Use an ADMIN token here — couple token will return 403"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/health"
+          }
+        },
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/docs"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: saukele-postgres
+    environment:
+      POSTGRES_USER: saukele
+      POSTGRES_PASSWORD: saukele_password
+      POSTGRES_DB: saukele
+    ports:
+      - "5432:5432"
+    volumes:
+      - saukele_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saukele -d saukele"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: saukele-api
+    environment:
+      DATABASE_URL: postgresql://saukele:saukele_password@postgres:5432/saukele?schema=public
+      JWT_SECRET: docker-compose-jwt-secret-must-be-at-least-64-characters-long-0000001
+      REFRESH_SECRET: docker-compose-refresh-secret-must-be-at-least-64-chars-long-000002
+      PAYMENT_WEBHOOK_SECRET: docker-compose-webhook-secret
+      NODE_ENV: development
+      FRONTEND_URL: http://localhost:5173
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && node src/server.js"
+
+volumes:
+  saukele_pgdata:
