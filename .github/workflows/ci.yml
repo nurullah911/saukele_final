@@ -21,8 +21,8 @@ jobs:
         run: npx jest tests/unit --runInBand
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-          JWT_SECRET: ci-unit-test-jwt-secret-must-be-at-least-64-characters-0000001
-          REFRESH_SECRET: ci-unit-test-refresh-secret-must-be-at-least-64-characters-00002
+          JWT_SECRET: ci-unit-test-jwt-secret-must-be-at-least-64-characters-long-000001
+          REFRESH_SECRET: ci-unit-test-refresh-secret-must-be-at-least-64-chars-long-000002
           PAYMENT_WEBHOOK_SECRET: ci-webhook-secret
           NODE_ENV: test
           FRONTEND_URL: http://localhost:5173
@@ -60,8 +60,8 @@ jobs:
         run: npx jest tests/integration --runInBand --forceExit
         env:
           DATABASE_URL: postgresql://saukele:saukele_password@localhost:5432/saukele_test?schema=public
-          JWT_SECRET: ci-integration-jwt-secret-must-be-at-least-64-characters-000001
-          REFRESH_SECRET: ci-integration-refresh-secret-must-be-at-least-64-chars-000002
+          JWT_SECRET: ci-integration-jwt-secret-must-be-at-least-64-characters-long-000001
+          REFRESH_SECRET: ci-integration-refresh-secret-must-be-at-least-64-chars-long-000002
           PAYMENT_WEBHOOK_SECRET: ci-webhook-secret
           NODE_ENV: test
           FRONTEND_URL: http://localhost:5173
