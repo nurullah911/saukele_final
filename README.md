@@ -1,33 +1,6 @@
-# Saukele Backend — Sprint 1
+# Saukele Backend — Final Project
 
-Express.js + Prisma + PostgreSQL backend for the Saukele wedding registry platform.
-
-## What is implemented (Sprint 1 — ~30% of final project)
-
-### Auth subsystem (100% complete)
-- `POST /api/auth/register` — registration with Zod validation, bcrypt hashing (12 rounds), role restricted to COUPLE/GUEST
-- `POST /api/auth/login` — credential verification, issues JWT access token (15min) + refresh token (7d)
-- `POST /api/auth/refresh` — exchanges valid refresh token for new access token
-- `POST /api/auth/logout` — revokes refresh token (SHA-256 hash stored in DB)
-- RBAC middleware: wrong role → 403 Forbidden (not 401)
-- Rate limiting: 5 attempts / 15min per IP+email on auth routes
-- CORS: whitelist from FRONTEND_URL env var, no wildcard in production
-
-### Core business logic
-- Registry CRUD (create, list, publish, public share token view)
-- Gift management (add SINGLE/POOL gift, reserve with 48hr expiry, get with funding progress)
-- Pool funding contribution with currency snapshot (amount_kzt, amount_original, exchange_rate_at_time, locked_at — never updated)
-- Kaspi Pay webhook with HMAC-SHA256 signature validation
-- Kinship tier system (ATA_ANA/TUYS/ZHIEN_ZHARAN/DOSY) with full CRUD
-- Recursive CTE family tree endpoint — `GET /api/kinship/tree/:coupleId`
-- Admin user listing
-
-### Track-specific complexity requirements (Saukele)
-1. **Self-referential table** — `family_relations` with `from_user_id`/`to_user_id`
-2. **Recursive CTE query** — `GET /api/kinship/tree/:coupleId` uses `WITH RECURSIVE`
-3. **Pool funding escrow state machine** — PENDING → FUNDED → (gift) PURCHASED
-4. **Currency snapshot** — `exchange_rate_at_time` + `locked_at` stored at creation, never mutated
-5. **Overfunding prevention** — atomic transaction checks total committed amount before inserting
+Express.js + Prisma + PostgreSQL + Redis backend for the Saukele wedding registry platform supporting Kazakh traditions.
 
 ## Run with Docker (one command)
 
@@ -39,56 +12,81 @@ docker compose up --build
 - Swagger UI: http://localhost:3000/docs
 - Health: http://localhost:3000/health
 
+## What is implemented
+
+### Auth (100% complete)
+- Registration with Zod validation, bcrypt hashing (12 rounds)
+- Login — issues JWT access token (15min) + refresh token (7d)
+- Refresh with **token rotation** — old token deleted, new pair issued
+- Logout — revokes refresh token from DB
+- RBAC middleware: wrong role → 403 Forbidden (not 401)
+- Rate limiting: 5 attempts / 15min per IP+email on auth routes
+- CORS: whitelist from FRONTEND_URL env var
+
+### Business Logic (Saukele track — all 6 requirements)
+
+**1. Kinship Logic**
+Family tree built via Prisma ORM — tiers (ата-ана, туыс, жиен-жаран, досы) with suggested contribution amounts. Endpoint `GET /api/kinship/tree/:coupleId` returns full tree grouped by tier.
+
+**2. Pool Funding**
+Contribution state machine: PENDING → FUNDED → (gift) PURCHASED. Overfunding prevention via atomic `prisma.$transaction()`. `GET /api/gifts/:id` returns `totalFunded` and `remaining`.
+
+**3. Multi-currency Snapshots**
+`exchangeRateAtTime` + `lockedAt` stored at contribution creation time — never updated (Snapshot Pattern). Supports KZT, USD, EUR.
+
+**4. Logistics Orchestration**
+Choco and inDriver couriers. Business rules: fragile items require white glove, white glove only via CHOCO. Status flow: PENDING → ASSIGNED → IN_TRANSIT → DELIVERED.
+
+**5. Privacy Tiers**
+`isPrivate` field on gifts. Private gifts visible only to guests with tier 1-2 (ATA_ANA, TUYS). Guests tier 3-4 or without kinship get 403.
+
+**6. Notification Etiquette**
+Notifications suppressed during құттықтау period (3 days before to 7 days after wedding) and outside polite hours (9:00-20:00). Endpoint `GET /api/notifications/etiquette` shows current status.
+
+### Admin Panel
+Full CRUD for users (list, get, suspend, delete), registries (list, close, delete) and contributions (list, flag for dispute).
+
+### Infrastructure
+- PostgreSQL 15 with ACID transactions
+- Redis 7 for rate limiting
+- Docker Compose with health checks
+- CI/CD via GitHub Actions (unit + integration + docker build)
+- Swagger UI at `/docs`
+- 28 unit tests + integration tests
+
 ## Local development
 
 ```bash
-npm install
-npx prisma generate
-# copy .env.example to .env and fill in values
 cp .env.example .env
-npx prisma migrate dev --name init
+# Fill in .env values
+npm install
+npx prisma migrate dev
 npm run dev
 ```
 
 ## Run tests
 
-Unit tests (no database needed):
 ```bash
-npm test -- tests/unit
+# Unit tests (no DB needed)
+npx jest tests/unit
+
+# Integration tests (requires DB)
+npx jest tests/integration
 ```
 
-Integration tests (requires PostgreSQL at .env.test DATABASE_URL):
+## Create Admin user
+
 ```bash
-npm test -- tests/integration
+# 1. Register as GUEST
+# 2. Promote via DB:
+docker exec -it saukele-postgres psql -U saukele -d saukele -c "UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';"
 ```
-
-All tests:
-```bash
-npm test
-```
-
-## Postman — Defense Flow
-
-Import `Saukele.postman_collection.json`. Run tabs in this order:
-
-1. **Auth → Register Couple** → **Register Guest**
-2. **Auth → Login Couple** (auto-saves `coupleToken` + `refreshToken` variable)
-3. **Auth → Login Guest** (auto-saves `guestToken`)
-4. **Auth → Refresh Token** — show token rotation
-5. **Auth → 403 — Guest tries Couple route** — show RBAC working
-6. **Registry → Create Registry** (auto-saves `registryId`, `shareToken`, `coupleId`)
-7. **Gifts → Add SINGLE Gift** → **Add POOL Gift**
-8. **Registry → Publish Registry** (requires at least 1 gift)
-9. **Registry → Public View by Share Token** (no auth)
-10. **Gifts → Reserve SINGLE Gift** (as guest)
-11. **Contributions → Contribute to POOL Gift — EUR** (currency snapshot)
-12. **Kinship → Set Kinship** → **Family Tree — Recursive CTE**
-13. **Auth → Logout** — show token revocation
 
 ## Architecture decisions
 
-- **Prisma ORM** — zero raw SQL except the recursive CTE which PostgreSQL requires (`WITH RECURSIVE`) and is called via `prisma.$queryRaw` with tagged template literals (parameterized, SQL-injection safe)
-- **bcryptjs** — 12 salt rounds; passwords never returned in API responses (Prisma select whitelist)
-- **JWT** — HS512 algorithm, separate secrets for access and refresh; refresh tokens stored as SHA-256 hashes
-- **Snapshot pattern** — exchange rates locked at contribution time via `locked_at` timestamp; historical rows are never updated
-- **State machine** — gift status: AVAILABLE → RESERVED → PURCHASED → DELIVERED; contribution status: PENDING → FUNDED / REFUNDED
+- **Layered architecture**: Router → Controller → Service → Prisma ORM
+- **Zero raw SQL**: all DB interactions through Prisma ORM including family tree (application-layer traversal)
+- **Snapshot Pattern**: exchange rates locked at contribution time, never mutated
+- **State Machine**: Gift (AVAILABLE→RESERVED→PURCHASED→DELIVERED), Contribution (PENDING→FUNDED/REFUNDED)
+- **HMAC-SHA256** webhook signature validation before processing payment callbacks
+- **Token Rotation**: refresh returns new pair, old token deleted immediately

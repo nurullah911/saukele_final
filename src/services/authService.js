@@ -71,13 +71,16 @@ async function refresh(refreshToken) {
     throw new HttpError(401, 'Invalid or expired refresh token');
   }
 
-  const stored = await prisma.refreshToken.findUnique({ where: { tokenHash: hashToken(refreshToken) } });
+  const tokenHash = hashToken(refreshToken);
+  const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } });
   if (!stored || stored.expiresAt < new Date()) throw new HttpError(401, 'Invalid or expired refresh token');
 
   const user = await prisma.user.findUnique({ where: { id: payload.sub } });
   if (!user || user.isSuspended) throw new HttpError(401, 'Invalid refresh token');
 
-  return { accessToken: signAccessToken(user) };
+  // TOKEN ROTATION: delete old refresh token, issue new pair
+  await prisma.refreshToken.delete({ where: { tokenHash } });
+  return issueTokens(user);
 }
 
 async function logout(refreshToken) {
