@@ -4,7 +4,7 @@ const env = require('../config/env');
 
 function signAccessToken(user) {
   return jwt.sign(
-    { sub: user.id, email: user.email, role: user.role },
+    { sub: user.id, email: user.email, role: user.role, jti: crypto.randomUUID() },
     env.jwtSecret,
     { algorithm: 'HS512', expiresIn: '15m' }
   );

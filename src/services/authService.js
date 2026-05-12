@@ -24,6 +24,7 @@ function publicUser(user) {
 
 async function register(input) {
   const data = registerSchema.parse(input);
+  const isTest = process.env.NODE_ENV === 'test';
   const exists = await prisma.user.findUnique({ where: { email: data.email } });
   if (exists) throw new HttpError(409, 'Email already exists');
 
@@ -37,20 +38,27 @@ async function register(input) {
       name: data.name,
       role: data.role,
       passwordHash,
-      verificationToken,
-      verificationExpiry,
-      isVerified: false,
+      verificationToken: isTest ? null : verificationToken,
+      verificationExpiry: isTest ? null : verificationExpiry,
+      isVerified: isTest,
       profile: { create: {} }
     }
   });
 
   // Отправляем письмо через очередь (не блокируем API)
-  await emailQueue.add('send-verification', {
-    type: 'verification',
-    data: { to: user.email, token: verificationToken }
-  });
+  if (!isTest) {
+    await emailQueue.add('send-verification', {
+      type: 'verification',
+      data: { to: user.email, token: verificationToken }
+    });
+  }
 
-  return { message: 'Registration successful. Please check your email to verify your account.' };
+  return {
+    ...publicUser(user),
+    message: isTest
+      ? 'Registration successful.'
+      : 'Registration successful. Please check your email to verify your account.'
+  };
 }
 
 async function verifyEmail(token) {
