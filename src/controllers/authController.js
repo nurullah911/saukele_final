@@ -1,8 +1,14 @@
 const authService = require('../services/authService');
 
 async function register(req, res) {
-  const user = await authService.register(req.body);
-  res.status(201).json(user);
+  const result = await authService.register(req.body);
+  res.status(201).json(result);
+}
+
+async function verifyEmail(req, res) {
+  const { token } = req.query;
+  const result = await authService.verifyEmail(token);
+  res.status(200).json(result);
 }
 
 async function login(req, res) {
@@ -20,4 +26,15 @@ async function logout(req, res) {
   res.status(204).send();
 }
 
-module.exports = { register, login, refresh, logout };
+async function forgotPassword(req, res) {
+  const result = await authService.forgotPassword(req.body.email);
+  res.status(200).json(result);
+}
+
+async function resetPassword(req, res) {
+  const { token, newPassword } = req.body;
+  const result = await authService.resetPassword(token, newPassword);
+  res.status(200).json(result);
+}
+
+module.exports = { register, verifyEmail, login, refresh, logout, forgotPassword, resetPassword };

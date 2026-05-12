@@ -16,8 +16,12 @@ model User {
   provider     String    @default("local")
   isVerified   Boolean   @default(false) @map("is_verified")
   isSuspended  Boolean   @default(false) @map("is_suspended")
-  lastLoginAt  DateTime? @map("last_login_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLoginAt        DateTime? @map("last_login_at")
+  verificationToken  String?   @map("verification_token")
+  verificationExpiry DateTime? @map("verification_expiry")
+  resetToken         String?   @map("reset_token")
+  resetExpiry        DateTime? @map("reset_expiry")
+  createdAt          DateTime  @default(now()) @map("created_at")
 
   profile       UserProfile?
   registries    Registry[]
