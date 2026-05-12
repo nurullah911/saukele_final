@@ -7,6 +7,230 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  name         String
+  passwordHash String?   @map("password_hash")
+  role         Role      @default(GUEST)
+  provider     String    @default("local")
+  isVerified   Boolean   @default(false) @map("is_verified")
+  isSuspended  Boolean   @default(false) @map("is_suspended")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  profile       UserProfile?
+  registries    Registry[]
+  contributions Contribution[]
+  relationsFrom FamilyRelation[] @relation("FromUser")
+  relationsTo   FamilyRelation[] @relation("ToUser")
+  refreshTokens RefreshToken[]
+  notifications Notification[]
+  guestInvites  GuestInvite[]
+  reservedGifts Gift[]           @relation("ReservedBy")
+
+  @@map("users")
+}
+
+model UserProfile {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarUrl       String?  @map("avatar_url")
+  bio             String?
+  phoneNumber     String?  @map("phone_number")
+  city            String?
+  instagramHandle String?  @map("instagram_handle")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("user_profiles")
+}
+
+model Registry {
+  id            Int            @id @default(autoincrement())
+  coupleId      Int            @map("couple_id")
+  couple        User           @relation(fields: [coupleId], references: [id])
+  title         String
+  eventDate     DateTime       @map("event_date")
+  description   String?
+  coverImageUrl String?        @map("cover_image_url")
+  status        RegistryStatus @default(DRAFT)
+  shareToken    String         @unique @map("share_token")
+  viewCount     Int            @default(0) @map("view_count")
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  gifts            Gift[]
+  guestInvites     GuestInvite[]
+  logisticsOrders  LogisticsOrder[]
+
+  @@index([coupleId])
+  @@map("registries")
+}
+
+model Gift {
+  id               Int        @id @default(autoincrement())
+  registryId       Int        @map("registry_id")
+  registry         Registry   @relation(fields: [registryId], references: [id])
+  title            String
+  description      String?
+  priceKzt         Decimal    @map("price_kzt") @db.Decimal(12, 2)
+  category         String?
+  giftType         GiftType   @default(SINGLE) @map("gift_type")
+  status           GiftStatus @default(AVAILABLE)
+  isPrivate        Boolean    @default(false) @map("is_private")
+  reservedByUserId Int?       @map("reserved_by_user_id")
+  reservedBy       User?      @relation("ReservedBy", fields: [reservedByUserId], references: [id])
+  reservedUntil    DateTime?  @map("reserved_until")
+  purchasedAt      DateTime?  @map("purchased_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+
+  images          GiftImage[]
+  contributions   Contribution[]
+  logisticsOrders LogisticsOrder[]
+
+  @@index([registryId])
+  @@map("gifts")
+}
+
+model GiftImage {
+  id        Int      @id @default(autoincrement())
+  giftId    Int      @map("gift_id")
+  gift      Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean  @default(false) @map("is_primary")
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([giftId])
+  @@map("gift_images")
+}
+
+model Contribution {
+  id                 Int                @id @default(autoincrement())
+  giftId             Int                @map("gift_id")
+  gift               Gift               @relation(fields: [giftId], references: [id])
+  guestId            Int                @map("guest_id")
+  guest              User               @relation(fields: [guestId], references: [id])
+  amountKzt          Decimal            @map("amount_kzt") @db.Decimal(12, 2)
+  amountOriginal     Decimal            @map("amount_original") @db.Decimal(12, 4)
+  originalCurrency   String             @default("KZT") @map("original_currency")
+  exchangeRateAtTime Decimal            @map("exchange_rate_at_time") @db.Decimal(12, 6)
+  lockedAt           DateTime           @map("locked_at")
+  status             ContributionStatus @default(PENDING)
+  paymentRef         String?            @map("payment_ref")
+  message            String?
+  createdAt          DateTime           @default(now()) @map("created_at")
+
+  paymentLogs PaymentLog[]
+
+  @@index([giftId, status])
+  @@index([guestId])
+  @@map("contributions")
+}
+
+model PaymentLog {
+  id             Int          @id @default(autoincrement())
+  contributionId Int          @map("contribution_id")
+  contribution   Contribution @relation(fields: [contributionId], references: [id])
+  event          String
+  providerRef    String?      @map("provider_ref")
+  rawPayload     Json?        @map("raw_payload")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([contributionId])
+  @@map("payment_logs")
+}
+
+model FamilyRelation {
+  id          Int         @id @default(autoincrement())
+  fromUserId  Int         @map("from_user_id")
+  fromUser    User        @relation("FromUser", fields: [fromUserId], references: [id])
+  toUserId    Int         @map("to_user_id")
+  toUser      User        @relation("ToUser", fields: [toUserId], references: [id])
+  kinshipType KinshipType @map("kinship_type")
+  tier        Int
+
+  @@unique([fromUserId, toUserId])
+  @@map("family_relations")
+}
+
+model GuestInvite {
+  id              Int          @id @default(autoincrement())
+  registryId      Int          @map("registry_id")
+  registry        Registry     @relation(fields: [registryId], references: [id])
+  guestId         Int          @map("guest_id")
+  guest           User         @relation(fields: [guestId], references: [id])
+  invitedByUserId Int          @map("invited_by_user_id")
+  status          InviteStatus @default(PENDING)
+  respondedAt     DateTime?    @map("responded_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  @@unique([registryId, guestId])
+  @@index([registryId])
+  @@map("guest_invites")
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  user       User     @relation(fields: [userId], references: [id])
+  type       String
+  message    String
+  isRead     Boolean  @default(false) @map("is_read")
+  targetType String?  @map("target_type")
+  targetId   Int?     @map("target_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model LogisticsOrder {
+  id              Int      @id @default(autoincrement())
+  giftId          Int      @map("gift_id")
+  gift            Gift     @relation(fields: [giftId], references: [id])
+  registryId      Int      @map("registry_id")
+  registry        Registry @relation(fields: [registryId], references: [id])
+  courierProvider String   @map("courier_provider")
+  status          String   @default("PENDING")
+  isFragile       Boolean  @default(false) @map("is_fragile")
+  whiteGlove      Boolean  @default(false) @map("white_glove")
+  pickupAddress   String   @map("pickup_address")
+  deliveryAddress String   @map("delivery_address")
+  providerOrderId String?  @map("provider_order_id")
+  estimatedAt     DateTime? @map("estimated_at")
+  deliveredAt     DateTime? @map("delivered_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([registryId])
+  @@map("logistics_orders")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   Int      @map("target_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
 enum Role {
   COUPLE
   GUEST
@@ -48,198 +272,4 @@ enum InviteStatus {
   PENDING
   ACCEPTED
   DECLINED
-}
-
-model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  name          String
-  passwordHash  String?        @map("password_hash")
-  role          Role           @default(GUEST)
-  provider      String         @default("local")
-  isVerified    Boolean        @default(false) @map("is_verified")
-  isSuspended   Boolean        @default(false) @map("is_suspended")
-  lastLoginAt   DateTime?      @map("last_login_at")
-  createdAt     DateTime       @default(now()) @map("created_at")
-  profile       UserProfile?
-  registries    Registry[]
-  contributions Contribution[]
-  relationsFrom FamilyRelation[] @relation("FromUser")
-  relationsTo   FamilyRelation[] @relation("ToUser")
-  refreshTokens RefreshToken[]
-  notifications Notification[]
-  guestInvites  GuestInvite[]
-
-  @@map("users")
-}
-
-model UserProfile {
-  id              Int      @id @default(autoincrement())
-  userId          Int      @unique @map("user_id")
-  user            User     @relation(fields: [userId], references: [id])
-  avatarUrl       String?  @map("avatar_url")
-  bio             String?
-  phoneNumber     String?  @map("phone_number")
-  city            String?
-  instagramHandle String?  @map("instagram_handle")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-
-  @@map("user_profiles")
-}
-
-model Registry {
-  id            Int            @id @default(autoincrement())
-  coupleId      Int            @map("couple_id")
-  couple        User           @relation(fields: [coupleId], references: [id])
-  title         String
-  eventDate     DateTime       @map("event_date")
-  description   String?
-  coverImageUrl String?        @map("cover_image_url")
-  status        RegistryStatus @default(DRAFT)
-  shareToken    String         @unique @map("share_token")
-  viewCount     Int            @default(0) @map("view_count")
-  createdAt     DateTime       @default(now()) @map("created_at")
-  gifts         Gift[]
-  guestInvites  GuestInvite[]
-
-  @@index([coupleId])
-  @@map("registries")
-}
-
-model Gift {
-  id               Int        @id @default(autoincrement())
-  registryId       Int        @map("registry_id")
-  registry         Registry   @relation(fields: [registryId], references: [id])
-  title            String
-  description      String?
-  priceKzt         Decimal    @map("price_kzt")
-  category         String?
-  giftType         GiftType   @default(SINGLE) @map("gift_type")
-  status           GiftStatus @default(AVAILABLE)
-  reservedByUserId Int?       @map("reserved_by_user_id")
-  reservedUntil    DateTime?  @map("reserved_until")
-  purchasedAt      DateTime?  @map("purchased_at")
-  createdAt        DateTime   @default(now()) @map("created_at")
-  images           GiftImage[]
-  contributions    Contribution[]
-
-  @@index([registryId])
-  @@map("gifts")
-}
-
-model GiftImage {
-  id        Int      @id @default(autoincrement())
-  giftId    Int      @map("gift_id")
-  gift      Gift     @relation(fields: [giftId], references: [id])
-  url       String
-  isPrimary Boolean  @default(false) @map("is_primary")
-  order     Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([giftId])
-  @@map("gift_images")
-}
-
-model Contribution {
-  id                 Int                @id @default(autoincrement())
-  giftId             Int                @map("gift_id")
-  gift               Gift               @relation(fields: [giftId], references: [id])
-  guestId            Int                @map("guest_id")
-  guest              User               @relation(fields: [guestId], references: [id])
-  amountKzt          Decimal            @map("amount_kzt")
-  amountOriginal     Decimal            @map("amount_original")
-  originalCurrency   String             @map("original_currency")
-  exchangeRateAtTime Decimal            @map("exchange_rate_at_time")
-  lockedAt           DateTime           @map("locked_at")
-  status             ContributionStatus @default(PENDING)
-  paymentRef         String?            @map("payment_ref")
-  message            String?
-  createdAt          DateTime           @default(now()) @map("created_at")
-  paymentLogs        PaymentLog[]
-
-  @@index([giftId, status])
-  @@index([guestId])
-  @@map("contributions")
-}
-
-model PaymentLog {
-  id             Int          @id @default(autoincrement())
-  contributionId Int          @map("contribution_id")
-  contribution   Contribution @relation(fields: [contributionId], references: [id])
-  event          String
-  providerRef    String?      @map("provider_ref")
-  rawPayload     Json?        @map("raw_payload")
-  createdAt      DateTime     @default(now()) @map("created_at")
-
-  @@index([contributionId])
-  @@map("payment_logs")
-}
-
-model GuestInvite {
-  id              Int          @id @default(autoincrement())
-  registryId      Int          @map("registry_id")
-  registry        Registry     @relation(fields: [registryId], references: [id])
-  guestId         Int          @map("guest_id")
-  guest           User         @relation(fields: [guestId], references: [id])
-  invitedByUserId Int          @map("invited_by_user_id")
-  status          InviteStatus @default(PENDING)
-  respondedAt     DateTime?    @map("responded_at")
-  createdAt       DateTime     @default(now()) @map("created_at")
-
-  @@unique([registryId, guestId])
-  @@index([registryId])
-  @@map("guest_invites")
-}
-
-model FamilyRelation {
-  id          Int         @id @default(autoincrement())
-  fromUserId  Int         @map("from_user_id")
-  fromUser    User        @relation("FromUser", fields: [fromUserId], references: [id])
-  toUserId    Int         @map("to_user_id")
-  toUser      User        @relation("ToUser", fields: [toUserId], references: [id])
-  kinshipType KinshipType @map("kinship_type")
-  tier        Int
-
-  @@unique([fromUserId, toUserId])
-  @@map("family_relations")
-}
-
-model Notification {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @map("user_id")
-  user       User     @relation(fields: [userId], references: [id])
-  type       String
-  message    String
-  isRead     Boolean  @default(false) @map("is_read")
-  targetType String?  @map("target_type")
-  targetId   Int?     @map("target_id")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@index([userId, isRead])
-  @@map("notifications")
-}
-
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
-  tokenHash String   @unique @map("token_hash")
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("refresh_tokens")
-}
-
-model AuditLog {
-  id         Int      @id @default(autoincrement())
-  userId     Int?     @map("user_id")
-  action     String
-  targetType String   @map("target_type")
-  targetId   Int      @map("target_id")
-  metadata   Json?
-  ipAddress  String?  @map("ip_address")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@index([targetType, targetId])
-  @@map("audit_logs")
 }

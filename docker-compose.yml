@@ -16,11 +16,23 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: saukele-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build: .
     container_name: saukele-api
     environment:
       DATABASE_URL: postgresql://saukele:saukele_password@postgres:5432/saukele?schema=public
+      REDIS_URL: redis://redis:6379
       JWT_SECRET: docker-compose-jwt-secret-must-be-at-least-64-characters-long-0000001
       REFRESH_SECRET: docker-compose-refresh-secret-must-be-at-least-64-chars-long-000002
       PAYMENT_WEBHOOK_SECRET: docker-compose-webhook-secret
@@ -31,6 +43,8 @@ services:
       - "3000:3000"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     command: sh -c "npx prisma migrate deploy && node src/server.js"
 
