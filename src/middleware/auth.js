@@ -11,7 +11,7 @@ function requireAuth(req, res, next) {
     const token = header.slice('Bearer '.length);
     req.user = verifyAccessToken(token);
     return next();
-  } catch (error) {
+  } catch (_error) {
     return next(new HttpError(401, 'Invalid or expired access token'));
   }
 }

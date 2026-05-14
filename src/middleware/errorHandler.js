@@ -2,7 +2,7 @@
 
 const { ZodError } = require('zod');
 
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
   // Zod validation error → 400
   if (err instanceof ZodError) {
     return res.status(400).json({

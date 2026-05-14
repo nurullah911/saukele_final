@@ -115,7 +115,7 @@ async function refresh(refreshToken) {
   let payload;
   try {
     payload = verifyRefreshToken(refreshToken);
-  } catch (error) {
+  } catch (_error) {
     throw new HttpError(401, 'Invalid or expired refresh token');
   }
 
