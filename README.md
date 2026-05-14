@@ -82,6 +82,19 @@ npx jest tests/integration
 docker exec -it saukele-postgres psql -U saukele -d saukele -c "UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';"
 ```
 
+## Background Jobs & Cron Schedule
+
+Email jobs are processed asynchronously via BullMQ backed by Redis.
+
+| Job Type | Trigger | Description |
+|----------|---------|-------------|
+| `verification` | On register | Sends email verification link (expires in 24h) |
+| `passwordReset` | On forgot-password | Sends password reset link (expires in 1h) |
+| `giftReserved` | On gift reserve | Notifies couple that a guest reserved their gift |
+
+Queue visibility: completed and failed jobs are logged to console with job ID and type.
+Redis connection: `REDIS_HOST:REDIS_PORT` (configured via environment variables).
+
 ## Architecture decisions
 
 - **Layered architecture**: Router → Controller → Service → Prisma ORM

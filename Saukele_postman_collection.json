@@ -48,6 +48,18 @@
     {
       "key": "logisticsId",
       "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "verifyToken",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
     }
   ],
   "item": [
@@ -67,7 +79,7 @@
             "url": "{{baseUrl}}/auth/register",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"couple@example.com\",\n  \"name\": \"Asel and Daniyar\",\n  \"password\": \"Password123\",\n  \"role\": \"COUPLE\"\n}"
+              "raw": "{\n  \"email\": \"nurullah.ermagambet@narxoz.kz\",\n  \"name\": \"Asel and Daniyar\",\n  \"password\": \"Password123\",\n  \"role\": \"COUPLE\"\n}"
             }
           }
         },
@@ -84,18 +96,46 @@
             "url": "{{baseUrl}}/auth/register",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"guest@example.com\",\n  \"name\": \"Bekzat Almas\",\n  \"password\": \"Password123\",\n  \"role\": \"GUEST\"\n}"
+              "raw": "{\n  \"email\": \"nurullah.ermagambet@narxoz.kz\",\n  \"name\": \"Bekzat Guest\",\n  \"password\": \"Password123\",\n  \"role\": \"GUEST\"\n}"
             }
           }
         },
         {
-          "name": "Login Couple",
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email?token={{verifyToken}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{verifyToken}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Couple (Admin)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "const r=pm.response.json();pm.collectionVariables.set('coupleToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);pm.collectionVariables.set('coupleId',r.userId||1);"
+                  "const r = pm.response.json();",
+                  "if (r.accessToken) {",
+                  "  pm.collectionVariables.set('coupleToken', r.accessToken);",
+                  "  pm.collectionVariables.set('adminToken', r.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', r.refreshToken);",
+                  "}"
                 ]
               }
             }
@@ -111,7 +151,7 @@
             "url": "{{baseUrl}}/auth/login",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"couple@example.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"email\": \"nurullah.ermagambet@narxoz.kz\",\n  \"password\": \"Password123\"\n}"
             }
           }
         },
@@ -122,7 +162,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.collectionVariables.set('guestToken',pm.response.json().accessToken);"
+                  "const r = pm.response.json();",
+                  "if (r.accessToken) {",
+                  "  pm.collectionVariables.set('guestToken', r.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', r.refreshToken);",
+                  "}"
                 ]
               }
             }
@@ -138,12 +182,24 @@
             "url": "{{baseUrl}}/auth/login",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"guest@example.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"email\": \"nurullah.ermagambet@narxoz.kz\",\n  \"password\": \"Password123\"\n}"
             }
           }
         },
         {
           "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.accessToken) pm.collectionVariables.set('coupleToken', r.accessToken);",
+                  "if (r.refreshToken) pm.collectionVariables.set('refreshToken', r.refreshToken);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -181,7 +237,41 @@
           }
         },
         {
-          "name": "403 \u2014 Guest tries Couple route",
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nurullah.ermagambet@narxoz.kz\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/reset-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"NewPassword123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "403 — Guest tries Couple route",
           "request": {
             "method": "POST",
             "header": [
@@ -202,95 +292,10 @@
           }
         },
         {
-          "name": "401 \u2014 No token",
+          "name": "401 — No token",
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/registries"
-          }
-        },
-        {
-          "name": "Verify Email",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/verify-email?token=PASTE_TOKEN_HERE",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "verify-email"
-              ],
-              "query": [
-                {
-                  "key": "token",
-                  "value": "PASTE_TOKEN_HERE"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Forgot Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"nurullah.ermagambet@narxoz.kz\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/forgot-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "forgot-password"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Reset Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"PASTE_RESET_TOKEN_HERE\",\n  \"newPassword\": \"NewPassword123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/reset-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "reset-password"
-              ]
-            }
           }
         }
       ]
@@ -415,7 +420,7 @@
             "url": "{{baseUrl}}/gifts",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"registryId\": {{registryId}},\n  \"title\": \"Gold Jewelry (Private \u2014 ATA_ANA only)\",\n  \"priceKzt\": 150000,\n  \"giftType\": \"SINGLE\",\n  \"category\": \"Tradition\",\n  \"isPrivate\": true\n}"
+              "raw": "{\n  \"registryId\": {{registryId}},\n  \"title\": \"Gold Jewelry (Private — ATA_ANA only)\",\n  \"priceKzt\": 150000,\n  \"giftType\": \"SINGLE\",\n  \"category\": \"Tradition\",\n  \"isPrivate\": true\n}"
             }
           }
         },
@@ -476,7 +481,7 @@
       "name": "Contributions",
       "item": [
         {
-          "name": "Contribute to POOL Gift \u2014 KZT",
+          "name": "Contribute to POOL Gift — KZT",
           "event": [
             {
               "listen": "test",
@@ -507,7 +512,7 @@
           }
         },
         {
-          "name": "Contribute to POOL Gift \u2014 EUR (snapshot)",
+          "name": "Contribute to POOL Gift — EUR (snapshot)",
           "event": [
             {
               "listen": "test",
@@ -538,7 +543,7 @@
           }
         },
         {
-          "name": "Webhook \u2014 Payment SUCCESS",
+          "name": "Webhook — Payment SUCCESS",
           "event": [
             {
               "listen": "prerequest",
@@ -630,7 +635,7 @@
           }
         },
         {
-          "name": "Family Tree \u2014 Recursive CTE",
+          "name": "Family Tree — Recursive CTE",
           "request": {
             "method": "GET",
             "header": [
@@ -655,7 +660,7 @@
           }
         },
         {
-          "name": "Dispatch Courier \u2014 CHOCO White Glove",
+          "name": "Dispatch Courier — CHOCO White Glove",
           "event": [
             {
               "listen": "test",
@@ -681,12 +686,12 @@
             "url": "{{baseUrl}}/logistics",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"giftId\": {{singleGiftId}},\n  \"registryId\": {{registryId}},\n  \"courierProvider\": \"CHOCO\",\n  \"isFragile\": true,\n  \"whiteGlove\": true,\n  \"pickupAddress\": \"\u0443\u043b. \u0410\u0431\u0430\u044f 10, \u0410\u043b\u043c\u0430\u0442\u044b\",\n  \"deliveryAddress\": \"\u0443\u043b. \u0414\u043e\u0441\u0442\u044b\u043a 5, \u0410\u043b\u043c\u0430\u0442\u044b\"\n}"
+              "raw": "{\n  \"giftId\": {{singleGiftId}},\n  \"registryId\": {{registryId}},\n  \"courierProvider\": \"CHOCO\",\n  \"isFragile\": true,\n  \"whiteGlove\": true,\n  \"pickupAddress\": \"ул. Абая 10, Алматы\",\n  \"deliveryAddress\": \"ул. Достык 5, Алматы\"\n}"
             }
           }
         },
         {
-          "name": "Dispatch Courier \u2014 inDriver Standard",
+          "name": "Dispatch Courier — inDriver Standard",
           "request": {
             "method": "POST",
             "header": [
@@ -702,12 +707,12 @@
             "url": "{{baseUrl}}/logistics",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"giftId\": {{poolGiftId}},\n  \"registryId\": {{registryId}},\n  \"courierProvider\": \"INDRIVER\",\n  \"isFragile\": false,\n  \"whiteGlove\": false,\n  \"pickupAddress\": \"\u0443\u043b. \u0410\u0431\u0430\u044f 10, \u0410\u043b\u043c\u0430\u0442\u044b\",\n  \"deliveryAddress\": \"\u0443\u043b. \u0414\u043e\u0441\u0442\u044b\u043a 5, \u0410\u043b\u043c\u0430\u0442\u044b\"\n}"
+              "raw": "{\n  \"giftId\": {{poolGiftId}},\n  \"registryId\": {{registryId}},\n  \"courierProvider\": \"INDRIVER\",\n  \"isFragile\": false,\n  \"whiteGlove\": false,\n  \"pickupAddress\": \"ул. Абая 10, Алматы\",\n  \"deliveryAddress\": \"ул. Достык 5, Алматы\"\n}"
             }
           }
         },
         {
-          "name": "400 \u2014 Fragile without White Glove",
+          "name": "400 — Fragile without White Glove",
           "request": {
             "method": "POST",
             "header": [
@@ -723,7 +728,7 @@
             "url": "{{baseUrl}}/logistics",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"giftId\": {{singleGiftId}},\n  \"registryId\": {{registryId}},\n  \"courierProvider\": \"INDRIVER\",\n  \"isFragile\": true,\n  \"whiteGlove\": false,\n  \"pickupAddress\": \"\u0443\u043b. \u0410\u0431\u0430\u044f 10, \u0410\u043b\u043c\u0430\u0442\u044b\",\n  \"deliveryAddress\": \"\u0443\u043b. \u0414\u043e\u0441\u0442\u044b\u043a 5, \u0410\u043b\u043c\u0430\u0442\u044b\"\n}"
+              "raw": "{\n  \"giftId\": {{singleGiftId}},\n  \"registryId\": {{registryId}},\n  \"courierProvider\": \"INDRIVER\",\n  \"isFragile\": true,\n  \"whiteGlove\": false,\n  \"pickupAddress\": \"ул. Абая 10, Алматы\",\n  \"deliveryAddress\": \"ул. Достык 5, Алматы\"\n}"
             }
           }
         },
@@ -741,7 +746,7 @@
           }
         },
         {
-          "name": "Update Status \u2014 IN_TRANSIT",
+          "name": "Update Status — IN_TRANSIT",
           "request": {
             "method": "PATCH",
             "header": [
@@ -817,7 +822,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/users"
@@ -830,7 +835,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/users/1"
@@ -847,7 +852,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/users/2/suspend",
@@ -868,7 +873,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/users/2/suspend",
@@ -885,7 +890,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/users/999"
@@ -898,7 +903,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/registries"
@@ -911,7 +916,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/registries/{{registryId}}/close"
@@ -924,7 +929,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/registries/999"
@@ -937,7 +942,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/contributions"
@@ -954,7 +959,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{coupleToken}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/admin/contributions/1/flag",
