@@ -1,7 +1,10 @@
+'use strict';
+
 const crypto = require('crypto');
 const { z } = require('zod');
 const prisma = require('../utils/prisma');
 const HttpError = require('../utils/httpError');
+const { emailQueue } = require('../workers/emailWorker');
 
 const createSchema = z.object({
   title: z.string().min(2),
@@ -43,18 +46,43 @@ async function getByShareToken(token) {
   const registry = await prisma.registry.update({
     where: { shareToken: token },
     data: { viewCount: { increment: 1 } },
-    include: { gifts: true }
+    include: {
+      gifts: {
+        where: { isPrivate: false } // public view only shows non-private gifts
+      }
+    }
   }).catch(() => null);
   if (!registry) throw new HttpError(404, 'Registry not found');
   return registry;
 }
 
 async function publish(userId, registryId) {
-  const registry = await prisma.registry.findUnique({ where: { id: registryId }, include: { gifts: true } });
+  const registry = await prisma.registry.findUnique({
+    where: { id: registryId },
+    include: { gifts: true, couple: { select: { email: true, name: true } } }
+  });
   if (!registry) throw new HttpError(404, 'Registry not found');
   if (registry.coupleId !== userId) throw new HttpError(403, 'Forbidden');
   if (registry.gifts.length === 0) throw new HttpError(400, 'Registry must have at least one gift before publishing');
-  return prisma.registry.update({ where: { id: registryId }, data: { status: 'PUBLISHED' }, include: { gifts: true } });
+
+  const updated = await prisma.registry.update({
+    where: { id: registryId },
+    data: { status: 'PUBLISHED' },
+    include: { gifts: true }
+  });
+
+  // EMAIL NOTIFICATION: notify couple that registry is published (business event #2)
+  const shareUrl = `${process.env.FRONTEND_URL}/registry/${updated.shareToken}`;
+  await emailQueue.add('registry-published-notification', {
+    type: 'registryPublished',
+    data: {
+      to: registry.couple.email,
+      title: registry.title,
+      shareUrl,
+    }
+  });
+
+  return updated;
 }
 
 module.exports = { createRegistry, listOwn, getByShareToken, publish };

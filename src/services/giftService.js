@@ -3,6 +3,7 @@
 const { z } = require('zod');
 const prisma = require('../utils/prisma');
 const HttpError = require('../utils/httpError');
+const { emailQueue } = require('../workers/emailWorker');
 
 const createGiftSchema = z.object({
   registryId: z.number().int().positive(),
@@ -35,14 +36,13 @@ async function addGift(userId, input) {
 
 // COMPLEXITY: Privacy Tiers
 // isPrivate gifts are visible only to guests with tier 1-2 (ATA_ANA, TUYS)
-// Guests with tier 3-4 or no kinship cannot see private gifts
 async function canViewPrivateGift(viewerUserId, coupleId) {
   if (!viewerUserId) return false;
   const relation = await prisma.familyRelation.findUnique({
     where: { fromUserId_toUserId: { fromUserId: viewerUserId, toUserId: coupleId } }
   });
   if (!relation) return false;
-  return relation.tier <= 2; // tier 1 = ATA_ANA, tier 2 = TUYS
+  return relation.tier <= 2;
 }
 
 async function getGift(id, viewerUserId) {
@@ -56,7 +56,6 @@ async function getGift(id, viewerUserId) {
   });
   if (!gift) throw new HttpError(404, 'Gift not found');
 
-  // Privacy check
   if (gift.isPrivate) {
     const coupleId = gift.registry.coupleId;
     const isOwner = viewerUserId === coupleId;
@@ -76,11 +75,31 @@ async function reserveGift(userId, giftId) {
     if (gift.status === 'PURCHASED' || gift.status === 'DELIVERED') throw new HttpError(422, 'Gift is already purchased');
     const activeReservation = gift.status === 'RESERVED' && gift.reservedUntil && gift.reservedUntil > new Date();
     if (activeReservation) throw new HttpError(409, 'Gift is already reserved');
+
     const reservedUntil = new Date(Date.now() + 48 * 60 * 60 * 1000);
-    return tx.gift.update({
+    const updated = await tx.gift.update({
       where: { id: giftId },
       data: { status: 'RESERVED', reservedByUserId: userId, reservedUntil },
     });
+
+    // EMAIL NOTIFICATION: notify couple that gift was reserved (business event #3)
+    const registry = await tx.registry.findUnique({
+      where: { id: gift.registryId },
+      include: { couple: { select: { email: true, name: true } } }
+    });
+    const guest = await tx.user.findUnique({ where: { id: userId }, select: { name: true } });
+    if (registry?.couple?.email) {
+      await emailQueue.add('gift-reserved-notification', {
+        type: 'giftReserved',
+        data: {
+          to: registry.couple.email,
+          giftName: gift.title,
+          reservedBy: guest?.name || 'A guest',
+        }
+      });
+    }
+
+    return updated;
   });
 }
 

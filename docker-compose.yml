@@ -30,12 +30,13 @@ services:
   api:
     build: .
     container_name: saukele-api
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://saukele:saukele_password@postgres:5432/saukele?schema=public
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: docker-compose-jwt-secret-must-be-at-least-64-characters-long-0000001
-      REFRESH_SECRET: docker-compose-refresh-secret-must-be-at-least-64-chars-long-000002
-      PAYMENT_WEBHOOK_SECRET: docker-compose-webhook-secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       NODE_ENV: development
       FRONTEND_URL: http://localhost:5173
       PORT: 3000
