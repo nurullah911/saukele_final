@@ -18,6 +18,13 @@ const loginSchema = z.object({
   password: z.string().min(1)
 });
 
+function createVerificationToken() {
+  return {
+    token: crypto.randomBytes(32).toString('hex'),
+    expiry: new Date(Date.now() + 24 * 60 * 60 * 1000)
+  };
+}
+
 function publicUser(user) {
   return { id: user.id, email: user.email, name: user.name, role: user.role };
 }
@@ -29,8 +36,7 @@ async function register(input) {
   if (exists) throw new HttpError(409, 'Email already exists');
 
   const passwordHash = await bcrypt.hash(data.password, 12);
-  const verificationToken = crypto.randomBytes(32).toString('hex');
-  const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
+  const { token: verificationToken, expiry: verificationExpiry } = createVerificationToken();
 
   const user = await prisma.user.create({
     data: {
@@ -59,6 +65,26 @@ async function register(input) {
       ? 'Registration successful.'
       : 'Registration successful. Please check your email to verify your account.'
   };
+}
+
+async function resendVerification(email) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new HttpError(404, 'User not found');
+  if (user.isVerified) throw new HttpError(400, 'Email is already verified');
+
+  const { token: verificationToken, expiry: verificationExpiry } = createVerificationToken();
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { verificationToken, verificationExpiry }
+  });
+
+  await emailQueue.add('send-verification', {
+    type: 'verification',
+    data: { to: user.email, token: verificationToken }
+  });
+
+  return { message: 'Verification email resent. Please check your email.' };
 }
 
 async function verifyEmail(token) {
@@ -185,4 +211,14 @@ async function resetPassword(token, newPassword) {
   return { message: 'Password reset successful. Please log in with your new password.' };
 }
 
-module.exports = { register, login, refresh, logout, publicUser, verifyEmail, forgotPassword, resetPassword };
+module.exports = {
+  register,
+  login,
+  refresh,
+  logout,
+  publicUser,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword
+};

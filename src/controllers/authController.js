@@ -1,4 +1,9 @@
 const authService = require('../services/authService');
+const { z } = require('zod');
+
+const resendVerificationSchema = z.object({
+  email: z.string().email()
+});
 
 async function register(req, res) {
   const result = await authService.register(req.body);
@@ -37,4 +42,19 @@ async function resetPassword(req, res) {
   res.status(200).json(result);
 }
 
-module.exports = { register, verifyEmail, login, refresh, logout, forgotPassword, resetPassword };
+async function resendVerification(req, res) {
+  const { email } = resendVerificationSchema.parse(req.body);
+  const result = await authService.resendVerification(email);
+  res.status(200).json(result);
+}
+
+module.exports = {
+  register,
+  verifyEmail,
+  login,
+  refresh,
+  logout,
+  forgotPassword,
+  resetPassword,
+  resendVerification
+};

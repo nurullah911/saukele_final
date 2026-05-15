@@ -13,5 +13,6 @@ router.post('/refresh', authLimiter, asyncHandler(controller.refresh));
 router.post('/logout', authLimiter, requireAuth, asyncHandler(controller.logout));
 router.post('/forgot-password', authLimiter, asyncHandler(controller.forgotPassword));
 router.post('/reset-password', authLimiter, asyncHandler(controller.resetPassword));
+router.post('/resend-verification', authLimiter, asyncHandler(controller.resendVerification));
 
 module.exports = router;
