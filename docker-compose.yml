@@ -38,7 +38,6 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       NODE_ENV: development
-      FRONTEND_URL: http://localhost:5173
       PORT: 3000
     ports:
       - "3000:3000"
@@ -48,6 +47,14 @@ services:
       redis:
         condition: service_healthy
     command: sh -c "npx prisma migrate deploy && node src/server.js"
+
+  frontend:
+    build: ./frontend
+    container_name: saukele-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   saukele_pgdata:

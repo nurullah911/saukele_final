@@ -19,6 +19,7 @@ const kinshipRoutes = require('./routes/kinship.routes');
 const adminRoutes = require('./routes/admin.routes');
 const logisticsRoutes = require('./routes/logistics.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const usersRoutes = require('./routes/users.routes');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/kinship', kinshipRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/logistics', logisticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/users', usersRoutes);
 
 app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
 app.use(errorHandler);

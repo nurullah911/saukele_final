@@ -20,4 +20,9 @@ async function publish(req, res) {
   res.status(200).json(registry);
 }
 
-module.exports = { create, listOwn, getByShareToken, publish };
+async function getById(req, res) {
+  const registry = await registryService.getById(req.user.sub, Number(req.params.id));
+  res.status(200).json(registry);
+}
+
+module.exports = { create, listOwn, getByShareToken, publish, getById };

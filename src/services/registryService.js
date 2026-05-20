@@ -85,4 +85,13 @@ async function publish(userId, registryId) {
   return updated;
 }
 
-module.exports = { createRegistry, listOwn, getByShareToken, publish };
+async function getById(userId, registryId) {
+  const registry = await prisma.registry.findUnique({
+    where: { id: registryId },
+    include: { gifts: { where: { isPrivate: false } } }
+  });
+  if (!registry) throw new HttpError(404, 'Registry not found');
+  return registry;
+}
+
+module.exports = { createRegistry, listOwn, getByShareToken, publish, getById };

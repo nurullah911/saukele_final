@@ -78,4 +78,41 @@ async function deleteKinship(userId, coupleId) {
   });
 }
 
-module.exports = { setKinship, getKinship, updateKinship, deleteKinship, getTierInfo };
+async function getFamilyTree(coupleId) {
+  const couple = await prisma.user.findUnique({ where: { id: coupleId } });
+  if (!couple) throw new HttpError(404, 'Couple not found');
+
+  const relations = await prisma.$queryRaw`
+    WITH RECURSIVE family_tree AS (
+      SELECT 
+        fr."from_user_id" as "userId",
+        u.name,
+        fr."kinship_type" as "kinshipType",
+        fr.tier,
+        1 as depth
+      FROM family_relations fr
+      JOIN users u ON u.id = fr."from_user_id"
+      WHERE fr."to_user_id" = ${coupleId}
+      
+      UNION ALL
+      
+      SELECT
+        fr2."from_user_id" as "userId",
+        u2.name,
+        fr2."kinship_type" as "kinshipType",
+        fr2.tier,
+        ft.depth + 1
+      FROM family_relations fr2
+      JOIN users u2 ON u2.id = fr2."from_user_id"
+      JOIN family_tree ft ON ft."userId" = fr2."to_user_id"
+      WHERE ft.depth < 3
+    )
+    SELECT DISTINCT "userId", name, "kinshipType", tier, depth
+    FROM family_tree
+    ORDER BY tier, depth
+  `;
+
+  return relations;
+}
+
+module.exports = { setKinship, getKinship, updateKinship, deleteKinship, getTierInfo, getFamilyTree };

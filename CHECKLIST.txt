@@ -1,0 +1,14 @@
+[ ] Application is LIVE on dashboard.deployrocks.com with working public URL
+[ ] docker compose up boots entire stack (backend + frontend + postgres + redis) locally
+[ ] jest runs and passes with full test suite
+[ ] Swagger UI / API docs is accessible on the deployed URL and covers ALL endpoints
+[ ] All auth endpoints work on deployed frontend: register, login, logout, refresh, RBAC protected routes
+[ ] Email verification sends REAL email on signup using Brevo (3rd party service)
+[ ] Password reset sends REAL email with working reset link
+[ ] At least 3 business event emails are implemented and queued via BullMQ background worker
+[ ] Frontend demo consumes real backend API and demonstrates all major workflows
+[ ] All business logic endpoints from blueprint are implemented and testable
+[ ] Background workers are running and processing jobs (BullMQ + Redis)
+[ ] No raw SQL queries exist in codebase (ORM only)
+[ ] Postman collection with ALL endpoints loaded in separate tabs ready for defense
+[ ] I am the sole author of the architectural decisions in this code

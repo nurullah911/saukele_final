@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saukele - Wedding Registry</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; color: #222; }
+    nav { background: #1F4E79; color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    nav .logo { font-size: 22px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+    nav .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    nav button { background: rgba(255,255,255,0.15); border: none; color: white; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    nav button:hover { background: rgba(255,255,255,0.28); }
+    nav button.active { background: #2E75B6; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 20px; }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #1F4E79; }
+    .card h3 { color: #1F4E79; margin-bottom: 6px; }
+    label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; margin-top: 12px; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 7px; font-size: 14px; outline: none; }
+    input[type="checkbox"] { width: auto; margin-right: 6px; }
+    input:focus, select:focus, textarea:focus { border-color: #2E75B6; }
+    textarea { resize: vertical; min-height: 70px; }
+    .btn { display: inline-block; padding: 10px 20px; border: none; border-radius: 7px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 14px; }
+    .btn-primary { background: #2E75B6; color: white; }
+    .btn-primary:hover { background: #1F4E79; }
+    .btn-danger { background: #c0392b; color: white; }
+    .btn-danger:hover { background: #a93226; }
+    .btn-success { background: #1e6b3c; color: white; }
+    .btn-success:hover { background: #155129; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; margin-top: 0; }
+    .btn-muted { background: #eef2f7; color: #1F4E79; }
+    .alert { padding: 10px 14px; border-radius: 7px; margin: 12px 0; font-size: 13px; display: none; }
+    .alert.show { display: block; }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .gift-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); border-left: 4px solid #2E75B6; }
+    .gift-card.pool { border-left-color: #1e6b3c; }
+    .gift-card.private { border-left-color: #e67e22; }
+    .gift-card h4 { font-size: 15px; margin-bottom: 6px; }
+    .gift-card .price { font-size: 18px; font-weight: 700; color: #1F4E79; }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin: 4px 2px 0 0; }
+    .badge-single { background: #e8f0fe; color: #1F4E79; }
+    .badge-pool { background: #e2f0e8; color: #1e6b3c; }
+    .badge-private { background: #fef3e2; color: #e67e22; }
+    .badge-available { background: #e2f0e8; color: #1e6b3c; }
+    .badge-reserved { background: #fff3cd; color: #856404; }
+    .badge-purchased { background: #d4edda; color: #155724; }
+    .badge-delivered { background: #d1ecf1; color: #0c5460; }
+    .badge-draft { background: #e8f0fe; color: #1F4E79; }
+    .badge-published { background: #d4edda; color: #155724; }
+    .badge-closed { background: #eee; color: #555; }
+    .progress-bar { background: #eee; border-radius: 8px; height: 8px; margin: 8px 0; overflow: hidden; }
+    .progress-fill { background: #2E75B6; border-radius: 8px; height: 100%; transition: width 0.3s; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 7px; cursor: pointer; font-size: 13px; }
+    .tab-btn.active { background: #2E75B6; color: white; border-color: #2E75B6; }
+    .user-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 13px; }
+    .role-badge { background: #f39c12; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #1F4E79; color: white; padding: 10px 12px; text-align: left; }
+    td { padding: 9px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+    tr:hover td { background: #f8f9fa; }
+    .table-wrap { overflow-x: auto; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot-green { background: #1e6b3c; }
+    .dot-yellow { background: #f39c12; }
+    .dot-red { background: #c0392b; }
+    .dot-blue { background: #2E75B6; }
+    .hero { background: linear-gradient(135deg, #1F4E79, #2E75B6); color: white; text-align: center; padding: 48px 24px; border-radius: 12px; margin-bottom: 24px; }
+    .hero h1 { font-size: 32px; margin-bottom: 8px; }
+    .hero p { font-size: 16px; opacity: 0.88; margin-bottom: 20px; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+    .text-muted { color: #888; font-size: 13px; }
+    .mt-8 { margin-top: 8px; }
+    .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .share-box { background: #eef5fb; border: 1px solid #d6e6f3; border-radius: 8px; padding: 10px 12px; margin-top: 10px; word-break: break-all; }
+    @media (max-width: 720px) {
+      nav { align-items: flex-start; flex-direction: column; }
+      .user-badge { flex-wrap: wrap; border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="logo">Saukele</div>
+  <div class="nav-links" id="navLinks"></div>
+  <div id="userInfo" style="display:none">
+    <div class="user-badge">
+      <span id="userNameDisplay">-</span>
+      <span class="role-badge" id="userRoleDisplay">-</span>
+      <button onclick="logout()" style="background:rgba(255,255,255,0.2);border:none;color:white;cursor:pointer;padding:4px 10px;border-radius:10px;font-size:12px">Выйти</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page active" id="page-home">
+  <div class="container">
+    <div class="hero">
+      <h1>Saukele</h1>
+      <p>Свадебный реестр подарков в казахских традициях</p>
+      <button class="btn btn-primary" onclick="showPage('auth')" style="background:white;color:#1F4E79;margin-top:0">Начать</button>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Pool подарки</h3><p class="text-muted">Гости могут вместе собрать сумму на один большой подарок.</p></div>
+      <div class="card"><h3>Родство</h3><p class="text-muted">Учитывайте tiers для ата-ана, туыс, жиен-жаран и друзей.</p></div>
+      <div class="card"><h3>Логистика</h3><p class="text-muted">Курьерская доставка для важных и хрупких подарков.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-auth">
+  <div class="container">
+    <div class="card" style="max-width:440px;margin:0 auto">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchAuthTab('login')" id="tab-login">Войти</button>
+        <button class="tab-btn" onclick="switchAuthTab('register')" id="tab-register">Регистрация</button>
+        <button class="tab-btn" onclick="switchAuthTab('forgot')" id="tab-forgot">Сброс пароля</button>
+      </div>
+      <div id="auth-login">
+        <h2>Вход</h2>
+        <div id="loginAlert" class="alert"></div>
+        <label>Email</label><input type="email" id="loginEmail" placeholder="email@example.com" />
+        <label>Пароль</label><input type="password" id="loginPassword" placeholder="Пароль" />
+        <button class="btn btn-primary" onclick="login()">Войти</button>
+      </div>
+      <div id="auth-register" style="display:none">
+        <h2>Регистрация</h2>
+        <div id="registerAlert" class="alert"></div>
+        <label>Имя</label><input type="text" id="regName" placeholder="Имя" />
+        <label>Email</label><input type="email" id="regEmail" placeholder="email@example.com" />
+        <label>Пароль</label><input type="password" id="regPassword" placeholder="Минимум 8 символов" />
+        <label>Роль</label>
+        <select id="regRole"><option value="GUEST">Гость</option><option value="COUPLE">Пара</option></select>
+        <button class="btn btn-primary" onclick="register()">Зарегистрироваться</button>
+        <p class="text-muted mt-8">После регистрации проверьте email для подтверждения аккаунта.</p>
+      </div>
+      <div id="auth-forgot" style="display:none">
+        <h2>Сброс пароля</h2>
+        <div id="forgotAlert" class="alert"></div>
+        <label>Email</label><input type="email" id="forgotEmail" placeholder="email@example.com" />
+        <button class="btn btn-primary" onclick="forgotPassword()">Отправить ссылку</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-verify">
+  <div class="container">
+    <div class="card" style="max-width:520px;margin:0 auto">
+      <h2>Подтверждение email</h2>
+      <div id="verifyAlert" class="alert alert-info show">Проверяем ссылку...</div>
+      <button class="btn btn-primary" onclick="showPage('auth'); switchAuthTab('login')">Перейти ко входу</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-reset">
+  <div class="container">
+    <div class="card" style="max-width:520px;margin:0 auto">
+      <h2>Новый пароль</h2>
+      <div id="resetAlert" class="alert"></div>
+      <label>Новый пароль</label><input type="password" id="resetPassword" />
+      <label>Повторите пароль</label><input type="password" id="resetPasswordConfirm" />
+      <button class="btn btn-primary" onclick="resetPassword()">Сохранить пароль</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-profile">
+  <div class="container">
+    <div class="card">
+      <h2>Профиль</h2>
+      <div id="profileAlert" class="alert"></div>
+      <div class="two-col">
+        <div><label>Имя</label><input type="text" id="profileName" /></div>
+        <div><label>Email</label><input type="email" id="profileEmail" disabled /></div>
+        <div><label>Роль</label><input type="text" id="profileRole" disabled /></div>
+        <div><label>Город</label><input type="text" id="profileCity" /></div>
+        <div><label>Телефон</label><input type="text" id="profilePhone" /></div>
+        <div><label>Instagram</label><input type="text" id="profileInstagram" /></div>
+      </div>
+      <label>Bio</label><textarea id="profileBio"></textarea>
+      <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-registry">
+  <div class="container">
+    <div class="card">
+      <h2>Мои реестры</h2>
+      <div id="registryAlert" class="alert"></div>
+      <label>Название свадьбы</label><input type="text" id="regTitle" placeholder="Свадьба Асель и Данияра" />
+      <label>Дата свадьбы</label><input type="date" id="regEventDate" />
+      <label>Описание</label><textarea id="regDesc" placeholder="Описание"></textarea>
+      <button class="btn btn-primary" onclick="createRegistry()">Создать реестр</button>
+    </div>
+    <div id="registryList"></div>
+  </div>
+</div>
+
+<div class="page" id="page-gifts">
+  <div class="container">
+    <div id="giftsRegistryInfo" class="card" style="display:none">
+      <div class="flex">
+        <div style="flex:1">
+          <h2 id="giftsRegistryTitle">Реестр</h2>
+          <p class="text-muted" id="giftsRegistryStatus"></p>
+          <div id="giftsShareBox" class="share-box" style="display:none"></div>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="publishRegistry()">Опубликовать</button>
+        <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Скопировать ссылку</button>
+      </div>
+    </div>
+    <div class="card" id="addGiftForm">
+      <h2>Добавить подарок</h2>
+      <div id="giftAlert" class="alert"></div>
+      <label>Название</label><input type="text" id="giftTitle" placeholder="Название подарка" />
+      <label>Цена (KZT)</label><input type="number" id="giftPrice" placeholder="50000" />
+      <label>Тип</label><select id="giftType"><option value="SINGLE">SINGLE - один покупает</option><option value="POOL">POOL - все скидываются</option></select>
+      <label>Категория</label><input type="text" id="giftCategory" placeholder="Home, Travel, Tradition" />
+      <label><input type="checkbox" id="giftPrivate" /> Приватный</label>
+      <button class="btn btn-primary" onclick="addGift()">Добавить подарок</button>
+    </div>
+    <div id="giftList" class="grid"></div>
+  </div>
+</div>
+
+<div class="page" id="page-logistics">
+  <div class="container">
+    <div class="card">
+      <h2>Логистика</h2>
+      <div id="logisticsAlert" class="alert"></div>
+      <p class="text-muted" id="logisticsRegistryHint">Выберите реестр в разделе "Мои реестры".</p>
+      <div class="two-col">
+        <div><label>Подарок</label><select id="logisticsGift"></select></div>
+        <div><label>Провайдер</label><select id="logisticsProvider"><option value="CHOCO">CHOCO</option><option value="INDRIVER">INDRIVER</option></select></div>
+      </div>
+      <label>Адрес забора</label><input type="text" id="pickupAddress" />
+      <label>Адрес доставки</label><input type="text" id="deliveryAddress" />
+      <div class="flex mt-8">
+        <label><input type="checkbox" id="isFragile" /> Хрупкий</label>
+        <label><input type="checkbox" id="whiteGlove" /> White glove</label>
+      </div>
+      <button class="btn btn-primary" onclick="dispatchCourier()">Вызвать курьера</button>
+    </div>
+    <div class="card">
+      <div class="flex"><h2 style="flex:1">Заказы доставки</h2><button class="btn btn-muted btn-sm" onclick="loadLogisticsOrders()">Обновить</button></div>
+      <div id="logisticsOrders"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-contributions">
+  <div class="container">
+    <div class="card">
+      <div class="flex"><h2 style="flex:1">Вклады</h2><button class="btn btn-muted btn-sm" onclick="loadContributionsHistory()">Обновить</button></div>
+      <div id="contributionsAlert" class="alert"></div>
+      <label>Payment Ref для webhook test</label><input type="text" id="webhookPaymentRef" placeholder="paymentRef" />
+      <button class="btn btn-primary" onclick="testPaymentWebhook()">Webhook SUCCESS</button>
+    </div>
+    <div id="contributionsList"></div>
+  </div>
+</div>
+
+<div class="page" id="page-guest">
+  <div class="container">
+    <div class="card">
+      <h2>Открыть реестр по ссылке</h2>
+      <div id="guestAlert" class="alert"></div>
+      <label>Share Token</label>
+      <div class="flex"><input type="text" id="shareTokenInput" placeholder="Вставьте share token" style="flex:1" /><button class="btn btn-primary btn-sm" onclick="loadPublicRegistry()">Открыть</button></div>
+    </div>
+    <div id="publicRegistryView"></div>
+  </div>
+</div>
+
+<div class="page" id="page-kinship">
+  <div class="container">
+    <div class="card">
+      <h2>Родство</h2>
+      <div id="kinshipAlert" class="alert"></div>
+      <label>ID пары</label><input type="number" id="kinshipCoupleId" placeholder="coupleId" />
+      <label>Тип родства</label>
+      <select id="kinshipType">
+        <option value="ATA_ANA">Ата-ана - 100 000 KZT</option>
+        <option value="TUYS">Туыс - 50 000 KZT</option>
+        <option value="ZHIEN_ZHARAN">Жиен-жаран - 30 000 KZT</option>
+        <option value="DOSY">Досы - 15 000 KZT</option>
+      </select>
+      <button class="btn btn-primary" onclick="setKinship()">Указать родство</button>
+      <hr class="divider" />
+      <h2>Дерево родства</h2>
+      <label>ID пары</label>
+      <div class="flex"><input type="number" id="familyTreeCoupleId" placeholder="coupleId" style="flex:1" /><button class="btn btn-primary btn-sm" onclick="loadFamilyTree()">Загрузить</button></div>
+      <div id="familyTreeResult"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-notifications">
+  <div class="container">
+    <div class="card">
+      <div class="flex">
+        <h2 style="flex:1">Уведомления <span id="unreadBadge" style="background:#c0392b;color:white;border-radius:12px;padding:2px 8px;font-size:12px;display:none">0</span></h2>
+        <button class="btn btn-primary btn-sm" onclick="markAllRead()">Прочитать все</button>
+        <button class="btn btn-muted btn-sm" onclick="loadNotifications()">Обновить</button>
+      </div>
+      <div id="notificationList"></div>
+    </div>
+    <div class="card">
+      <h2>Этикет уведомлений</h2>
+      <label>Registry ID</label><input type="number" id="etiquetteRegistryId" placeholder="необязательно" />
+      <button class="btn btn-primary" onclick="checkEtiquette()">Проверить</button>
+      <div id="etiquetteResult"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-admin">
+  <div class="container">
+    <div class="card">
+      <h2>Админ</h2>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchAdminTab('users')" id="atab-users">Пользователи</button>
+        <button class="tab-btn" onclick="switchAdminTab('registries')" id="atab-registries">Реестры</button>
+        <button class="tab-btn" onclick="switchAdminTab('contributions')" id="atab-contributions">Вклады</button>
+      </div>
+      <div id="admin-users"><button class="btn btn-primary btn-sm" onclick="loadAdminUsers()">Загрузить</button><div id="adminUsersList" class="mt-8"></div></div>
+      <div id="admin-registries" style="display:none"><button class="btn btn-primary btn-sm" onclick="loadAdminRegistries()">Загрузить</button><div id="adminRegistriesList" class="mt-8"></div></div>
+      <div id="admin-contributions" style="display:none"><button class="btn btn-primary btn-sm" onclick="loadAdminContributions()">Загрузить</button><div id="adminContributionsList" class="mt-8"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+
+  let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  let currentRegistryId = Number(localStorage.getItem('currentRegistryId')) || null;
+  let currentRegistryShareToken = localStorage.getItem('currentRegistryShareToken') || null;
+  let currentRegistryTitle = localStorage.getItem('currentRegistryTitle') || '';
+  let currentRegistryStatus = localStorage.getItem('currentRegistryStatus') || '';
+  let currentRegistryGifts = [];
+  let resetToken = '';
+
+  async function api(method, path, body, auth = true) {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('accessToken');
+    if (auth && token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${API}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+    return data;
+  }
+
+  function showAlert(id, msg, type = 'error') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = `alert alert-${type} show`;
+    el.textContent = msg;
+  }
+
+  function formatKzt(n) {
+    return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(Number(n || 0));
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+  }
+
+  function getShareLink() {
+    return currentRegistryShareToken ? `${window.location.origin}${window.location.pathname}?share=${currentRegistryShareToken}` : '';
+  }
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${name}`)?.classList.add('active');
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(`nav-${name}`)?.classList.add('active');
+    if (name === 'registry') loadRegistries();
+    if (name === 'profile') loadProfile();
+    if (name === 'gifts') loadGifts();
+    if (name === 'logistics') { loadLogisticsGiftOptions(); loadLogisticsOrders(); }
+    if (name === 'contributions') loadContributionsHistory();
+    if (name === 'notifications') loadNotifications();
+  }
+
+  function updateNav() {
+    const nav = document.getElementById('navLinks');
+    const items = [{ key: 'home', label: 'Главная' }];
+    if (!currentUser) items.push({ key: 'auth', label: 'Войти' }, { key: 'guest', label: 'Гостевой доступ' });
+    if (currentUser) {
+      items.push({ key: 'profile', label: 'Профиль' }, { key: 'guest', label: 'Гость' }, { key: 'kinship', label: 'Родство' }, { key: 'notifications', label: 'Уведомления' });
+      if (currentUser.role === 'COUPLE') items.push({ key: 'registry', label: 'Реестры' }, { key: 'gifts', label: 'Подарки' }, { key: 'logistics', label: 'Логистика' }, { key: 'contributions', label: 'Вклады' });
+      if (currentUser.role === 'ADMIN') items.push({ key: 'admin', label: 'Админ' });
+    }
+    nav.innerHTML = items.map(i => `<button onclick="showPage('${i.key}')" id="nav-${i.key}">${i.label}</button>`).join('');
+    document.getElementById('userInfo').style.display = currentUser ? '' : 'none';
+    if (currentUser) {
+      document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.email || '-';
+      document.getElementById('userRoleDisplay').textContent = currentUser.role || '-';
+    }
+  }
+
+  function switchAuthTab(tab) {
+    ['login', 'register', 'forgot'].forEach(t => {
+      document.getElementById(`auth-${t}`).style.display = t === tab ? '' : 'none';
+      document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    });
+  }
+
+  async function register() {
+    try {
+      await api('POST', '/auth/register', {
+        name: document.getElementById('regName').value,
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        role: document.getElementById('regRole').value
+      }, false);
+      showAlert('registerAlert', 'Регистрация создана. Проверьте email для подтверждения.', 'success');
+    } catch (e) { showAlert('registerAlert', e.message); }
+  }
+
+  async function login() {
+    try {
+      const data = await api('POST', '/auth/login', {
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      }, false);
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      const me = await api('GET', '/users/me');
+      currentUser = me;
+      localStorage.setItem('currentUser', JSON.stringify(me));
+      updateNav();
+      showPage(me.role === 'COUPLE' ? 'registry' : me.role === 'ADMIN' ? 'admin' : 'guest');
+    } catch (e) { showAlert('loginAlert', e.message); }
+  }
+
+  async function logout() {
+    try {
+      const refreshTokenVal = localStorage.getItem('refreshToken');
+      if (refreshTokenVal) await api('POST', '/auth/logout', { refreshToken: refreshTokenVal });
+    } catch {}
+    localStorage.clear();
+    currentUser = null;
+    currentRegistryId = null;
+    currentRegistryShareToken = null;
+    updateNav();
+    showPage('home');
+  }
+
+  async function forgotPassword() {
+    try {
+      await api('POST', '/auth/forgot-password', { email: document.getElementById('forgotEmail').value }, false);
+      showAlert('forgotAlert', 'Ссылка отправлена на email.', 'success');
+    } catch (e) { showAlert('forgotAlert', e.message); }
+  }
+
+  async function loadProfile() {
+    if (!currentUser) return;
+    try {
+      const user = await api('GET', '/users/me');
+      currentUser = user;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      document.getElementById('profileName').value = user.name || '';
+      document.getElementById('profileEmail').value = user.email || '';
+      document.getElementById('profileRole').value = user.role || '';
+      document.getElementById('profileBio').value = user.profile?.bio || '';
+      document.getElementById('profilePhone').value = user.profile?.phoneNumber || '';
+      document.getElementById('profileCity').value = user.profile?.city || '';
+      document.getElementById('profileInstagram').value = user.profile?.instagramHandle || '';
+      updateNav();
+    } catch (e) { showAlert('profileAlert', e.message); }
+  }
+
+  async function saveProfile() {
+    try {
+      const user = await api('PUT', '/users/me', {
+        name: document.getElementById('profileName').value,
+        bio: document.getElementById('profileBio').value,
+        phoneNumber: document.getElementById('profilePhone').value,
+        city: document.getElementById('profileCity').value,
+        instagramHandle: document.getElementById('profileInstagram').value
+      });
+      currentUser = { ...currentUser, ...user };
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      updateNav();
+      showAlert('profileAlert', 'Профиль обновлен.', 'success');
+    } catch (e) { showAlert('profileAlert', e.message); }
+  }
+
+  async function verifyEmailFromUrl(token) {
+    showPage('verify');
+    try {
+      await api('GET', `/auth/verify-email?token=${encodeURIComponent(token)}`, null, false);
+      showAlert('verifyAlert', 'Email подтверждён! Теперь войдите в систему', 'success');
+    } catch (e) { showAlert('verifyAlert', e.message); }
+  }
+
+  async function resetPassword() {
+    const pass = document.getElementById('resetPassword').value;
+    const confirm = document.getElementById('resetPasswordConfirm').value;
+    if (pass !== confirm) return showAlert('resetAlert', 'Пароли не совпадают');
+    try {
+      await api('POST', '/auth/reset-password', { token: resetToken, newPassword: pass }, false);
+      showAlert('resetAlert', 'Пароль обновлен. Теперь войдите в систему.', 'success');
+    } catch (e) { showAlert('resetAlert', e.message); }
+  }
+
+  async function createRegistry() {
+    try {
+      await api('POST', '/registries', {
+        title: document.getElementById('regTitle').value,
+        eventDate: document.getElementById('regEventDate').value,
+        description: document.getElementById('regDesc').value
+      });
+      showAlert('registryAlert', 'Реестр создан.', 'success');
+      loadRegistries();
+    } catch (e) { showAlert('registryAlert', e.message); }
+  }
+
+  async function loadRegistries() {
+    if (!currentUser || currentUser.role !== 'COUPLE') return;
+    try {
+      const data = await api('GET', '/registries');
+      const list = document.getElementById('registryList');
+      if (!data.data?.length) { list.innerHTML = '<p class="text-muted">Реестров пока нет</p>'; return; }
+      list.innerHTML = data.data.map(r => `
+        <div class="card">
+          <div class="flex">
+            <div style="flex:1">
+              <h3>${escapeHtml(r.title)}</h3>
+              <p class="text-muted">${new Date(r.eventDate).toLocaleDateString('ru-RU')} · <span class="badge badge-${String(r.status).toLowerCase()}">${r.status}</span> · ${r._count?.gifts || r.gifts?.length || 0} подарков</p>
+              ${r.status === 'PUBLISHED' && r.shareToken ? `<div class="share-box">${window.location.origin}${window.location.pathname}?share=${escapeHtml(r.shareToken)}</div>` : ''}
+            </div>
+            <button class="btn btn-primary btn-sm" onclick='openRegistry(${r.id}, ${JSON.stringify(r.shareToken || '')}, ${JSON.stringify(r.title || '')}, ${JSON.stringify(r.status || '')})'>Управлять</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) { console.error(e); }
+  }
+
+  function openRegistry(id, token, title, status) {
+    currentRegistryId = id;
+    currentRegistryShareToken = token;
+    currentRegistryTitle = title;
+    currentRegistryStatus = status;
+    localStorage.setItem('currentRegistryId', id);
+    localStorage.setItem('currentRegistryShareToken', token || '');
+    localStorage.setItem('currentRegistryTitle', title || '');
+    localStorage.setItem('currentRegistryStatus', status || '');
+    renderCurrentRegistryHeader();
+    showPage('gifts');
+  }
+
+  function renderCurrentRegistryHeader() {
+    if (!currentRegistryId) return;
+    document.getElementById('giftsRegistryInfo').style.display = '';
+    document.getElementById('giftsRegistryTitle').textContent = currentRegistryTitle || `Реестр #${currentRegistryId}`;
+    document.getElementById('giftsRegistryStatus').innerHTML = `Статус: <span class="badge badge-${String(currentRegistryStatus || 'DRAFT').toLowerCase()}">${currentRegistryStatus || 'DRAFT'}</span>`;
+    const box = document.getElementById('giftsShareBox');
+    if (currentRegistryStatus === 'PUBLISHED' && currentRegistryShareToken) {
+      box.style.display = '';
+      box.textContent = `Share link: ${getShareLink()}`;
+    } else {
+      box.style.display = 'none';
+      box.textContent = '';
+    }
+  }
+
+  async function publishRegistry() {
+    if (!currentRegistryId) return showAlert('giftAlert', 'Сначала выберите реестр');
+    try {
+      const updated = await api('PATCH', `/registries/${currentRegistryId}/publish`);
+      currentRegistryStatus = updated.status || 'PUBLISHED';
+      currentRegistryShareToken = updated.shareToken || currentRegistryShareToken;
+      localStorage.setItem('currentRegistryStatus', currentRegistryStatus);
+      localStorage.setItem('currentRegistryShareToken', currentRegistryShareToken || '');
+      renderCurrentRegistryHeader();
+      showAlert('giftAlert', 'Реестр опубликован. Share link готов.', 'success');
+    } catch (e) { showAlert('giftAlert', e.message); }
+  }
+
+  function copyShareLink() {
+    const link = getShareLink();
+    if (!link) return alert('Share link пока недоступен');
+    navigator.clipboard?.writeText(link);
+    alert(`Share link скопирован: ${link}`);
+  }
+
+  async function addGift() {
+    try {
+      await api('POST', '/gifts', {
+        registryId: currentRegistryId,
+        title: document.getElementById('giftTitle').value,
+        priceKzt: parseFloat(document.getElementById('giftPrice').value),
+        giftType: document.getElementById('giftType').value,
+        category: document.getElementById('giftCategory').value,
+        isPrivate: document.getElementById('giftPrivate').checked
+      });
+      showAlert('giftAlert', 'Подарок добавлен.', 'success');
+      loadGifts();
+    } catch (e) { showAlert('giftAlert', e.message); }
+  }
+
+  function giftFunded(g) {
+    if (g.totalFunded !== undefined && g.totalFunded !== null) return Number(g.totalFunded);
+    return (g.contributions || []).filter(c => c.status === 'FUNDED' || c.status === 'PENDING').reduce((s, c) => s + Number(c.amountKzt || 0), 0);
+  }
+
+  function renderGiftCard(g) {
+    const funded = giftFunded(g);
+    const pct = g.giftType === 'POOL' ? Math.min(100, (funded / Number(g.priceKzt || 1)) * 100).toFixed(0) : 0;
+    return `
+      <div class="gift-card ${g.giftType === 'POOL' ? 'pool' : ''} ${g.isPrivate ? 'private' : ''}">
+        <h4>${escapeHtml(g.title)}</h4>
+        <div class="price">${formatKzt(g.priceKzt)}</div>
+        <div>
+          <span class="badge badge-${String(g.giftType).toLowerCase()}">${g.giftType}</span>
+          <span class="badge badge-${String(g.status || 'AVAILABLE').toLowerCase()}">${g.status || 'AVAILABLE'}</span>
+          ${g.isPrivate ? '<span class="badge badge-private">Приватный</span>' : ''}
+        </div>
+        ${g.giftType === 'POOL' ? `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><p class="text-muted">${formatKzt(funded)} из ${formatKzt(g.priceKzt)} (${pct}%)</p>` : ''}
+        ${g.status === 'RESERVED' && g.reservedUntil ? `<p class="text-muted mt-8">Зарезервировано до: ${new Date(g.reservedUntil).toLocaleString('ru-RU')}</p>` : ''}
+        ${currentUser?.role === 'COUPLE' ? `<button class="btn btn-danger btn-sm" onclick="deleteGift(${g.id})" style="margin-top:8px">Удалить</button>` : ''}
+      </div>
+    `;
+  }
+
+  async function loadGifts() {
+    if (!currentRegistryId) return;
+    try {
+      const data = await api('GET', `/registries/${currentRegistryId}`);
+      currentRegistryTitle = data.title || currentRegistryTitle;
+      currentRegistryStatus = data.status || currentRegistryStatus;
+      currentRegistryShareToken = data.shareToken || currentRegistryShareToken;
+      currentRegistryGifts = data.gifts || [];
+      localStorage.setItem('currentRegistryTitle', currentRegistryTitle || '');
+      localStorage.setItem('currentRegistryStatus', currentRegistryStatus || '');
+      localStorage.setItem('currentRegistryShareToken', currentRegistryShareToken || '');
+      renderCurrentRegistryHeader();
+      document.getElementById('giftList').innerHTML = currentRegistryGifts.length ? currentRegistryGifts.map(renderGiftCard).join('') : '<p class="text-muted">Подарков пока нет</p>';
+    } catch (e) { console.error(e); }
+  }
+
+  async function deleteGift(id) {
+    if (!confirm('Удалить подарок?')) return;
+    try { await api('DELETE', `/gifts/${id}`); loadGifts(); } catch (e) { alert(e.message); }
+  }
+
+  async function loadPublicRegistry() {
+    const token = document.getElementById('shareTokenInput').value.trim();
+    if (!token) return;
+    try {
+      const data = await api('GET', `/registries/share/${token}`, null, false);
+      const gifts = data.gifts || [];
+      document.getElementById('publicRegistryView').innerHTML = `
+        <div class="card"><h2>${escapeHtml(data.title)}</h2><p class="text-muted">Дата: ${new Date(data.eventDate).toLocaleDateString('ru-RU')}</p>${data.description ? `<p>${escapeHtml(data.description)}</p>` : ''}</div>
+        <div class="grid">${gifts.map(renderGiftCard).join('')}</div>
+      `;
+      showAlert('guestAlert', `Реестр "${data.title}" загружен`, 'success');
+    } catch (e) { showAlert('guestAlert', e.message); }
+  }
+
+  async function reserveGift(giftId) {
+    try { await api('PATCH', `/gifts/${giftId}/reserve`); alert('Подарок зарезервирован на 48 часов.'); loadPublicRegistry(); } catch (e) { alert(e.message); }
+  }
+
+  function contributeModal(giftId, giftName, price) {
+    const amount = prompt(`Скинуться на "${giftName}" (цена ${formatKzt(price)}):\nВведите сумму в KZT:`);
+    if (!amount) return;
+    contribute(giftId, parseFloat(amount));
+  }
+
+  async function contribute(giftId, amountKzt) {
+    try {
+      const c = await api('POST', '/contributions', { giftId, amountKzt, originalCurrency: 'KZT', amountOriginal: amountKzt, message: 'Поздравляю!' });
+      alert(`Вклад создан. Статус: ${c.status}. Payment ref: ${c.paymentRef}`);
+    } catch (e) { alert(e.message); }
+  }
+
+  async function loadLogisticsGiftOptions() {
+    if (!currentRegistryId) return;
+    if (!currentRegistryGifts.length) await loadGifts();
+    document.getElementById('logisticsRegistryHint').textContent = `Текущий реестр: ${currentRegistryTitle || currentRegistryId}`;
+    document.getElementById('logisticsGift').innerHTML = currentRegistryGifts.map(g => `<option value="${g.id}">${escapeHtml(g.title)}</option>`).join('');
+  }
+
+  async function dispatchCourier() {
+    if (!currentRegistryId) return showAlert('logisticsAlert', 'Сначала выберите реестр');
+    try {
+      await api('POST', '/logistics', {
+        registryId: currentRegistryId,
+        giftId: Number(document.getElementById('logisticsGift').value),
+        courierProvider: document.getElementById('logisticsProvider').value,
+        pickupAddress: document.getElementById('pickupAddress').value,
+        deliveryAddress: document.getElementById('deliveryAddress').value,
+        isFragile: document.getElementById('isFragile').checked,
+        whiteGlove: document.getElementById('whiteGlove').checked
+      });
+      showAlert('logisticsAlert', 'Курьерский заказ создан.', 'success');
+      loadLogisticsOrders();
+    } catch (e) { showAlert('logisticsAlert', e.message); }
+  }
+
+  async function loadLogisticsOrders() {
+    if (!currentRegistryId) { document.getElementById('logisticsOrders').innerHTML = '<p class="text-muted">Сначала выберите реестр.</p>'; return; }
+    try {
+      const orders = await api('GET', `/logistics/registry/${currentRegistryId}`);
+      document.getElementById('logisticsOrders').innerHTML = orders.length ? `
+        <div class="table-wrap"><table><thead><tr><th>Подарок</th><th>Провайдер</th><th>Статус</th><th>Забор</th><th>Доставка</th><th>ETA</th></tr></thead><tbody>
+        ${orders.map(o => `<tr><td>${escapeHtml(o.gift?.title || o.giftId)}</td><td>${o.courierProvider}</td><td>${o.status}</td><td>${escapeHtml(o.pickupAddress)}</td><td>${escapeHtml(o.deliveryAddress)}</td><td>${o.estimatedAt ? new Date(o.estimatedAt).toLocaleString('ru-RU') : '-'}</td></tr>`).join('')}
+        </tbody></table></div>` : '<p class="text-muted">Заказов доставки пока нет</p>';
+    } catch (e) { showAlert('logisticsAlert', e.message); }
+  }
+
+  async function loadContributionsHistory() {
+    if (!currentRegistryId) { document.getElementById('contributionsList').innerHTML = '<div class="card"><p class="text-muted">Сначала выберите реестр.</p></div>'; return; }
+    try {
+      const registry = await api('GET', `/registries/${currentRegistryId}`);
+      const rows = (registry.gifts || []).flatMap(g => (g.contributions || []).map(c => ({ gift: g, contribution: c })));
+      document.getElementById('contributionsList').innerHTML = rows.length ? `
+        <div class="card table-wrap"><table><thead><tr><th>Подарок</th><th>Гость</th><th>Сумма</th><th>Статус</th><th>Payment Ref</th></tr></thead><tbody>
+          ${rows.map(({ gift, contribution }) => `<tr><td>${escapeHtml(gift.title)}</td><td>${escapeHtml(contribution.guest?.name || contribution.guestName || contribution.guestId || '-')}</td><td>${formatKzt(contribution.amountKzt)}</td><td>${contribution.status}</td><td>${escapeHtml(contribution.paymentRef || '-')}</td></tr>`).join('')}
+        </tbody></table></div>` : '<div class="card"><p class="text-muted">Вкладов пока нет или API реестра не возвращает contributions.</p></div>';
+    } catch (e) { showAlert('contributionsAlert', e.message); }
+  }
+
+  async function testPaymentWebhook() {
+    try {
+      await api('POST', '/contributions/webhook/payment', { paymentRef: document.getElementById('webhookPaymentRef').value, status: 'SUCCESS' }, false);
+      showAlert('contributionsAlert', 'Webhook SUCCESS отправлен.', 'success');
+      loadContributionsHistory();
+    } catch (e) { showAlert('contributionsAlert', e.message); }
+  }
+
+  async function setKinship() {
+    try {
+      const data = await api('POST', '/kinship', { coupleId: parseInt(document.getElementById('kinshipCoupleId').value), kinshipType: document.getElementById('kinshipType').value });
+      showAlert('kinshipAlert', `Родство установлено. Рекомендуемая сумма: ${formatKzt(data.suggestedContributionKzt)}`, 'success');
+    } catch (e) { showAlert('kinshipAlert', e.message); }
+  }
+
+  async function loadFamilyTree() {
+    const coupleId = document.getElementById('familyTreeCoupleId').value;
+    try {
+      const data = await api('GET', `/kinship/${coupleId}/tree`);
+      const rows = Array.isArray(data) ? data : data.familyTree || [];
+      document.getElementById('familyTreeResult').innerHTML = rows.length ? `
+        <table style="margin-top:8px"><thead><tr><th>Имя</th><th>Тип родства</th><th>Tier</th><th>Depth</th></tr></thead><tbody>
+        ${rows.map(f => `<tr><td>${escapeHtml(f.name || f.guestName || f.userId)}</td><td>${f.kinshipType}</td><td>${f.tier}</td><td>${f.depth || '-'}</td></tr>`).join('')}
+        </tbody></table>` : '<p class="text-muted mt-8">Родственников нет</p>';
+    } catch (e) { showAlert('kinshipAlert', e.message); }
+  }
+
+  async function loadNotifications() {
+    try {
+      const data = await api('GET', '/notifications');
+      const badge = document.getElementById('unreadBadge');
+      badge.style.display = data.unreadCount > 0 ? 'inline' : 'none';
+      badge.textContent = data.unreadCount || 0;
+      document.getElementById('notificationList').innerHTML = data.data?.length ? data.data.map(n => `
+        <div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;gap:8px;align-items:flex-start">
+          <span class="dot ${n.isRead ? 'dot-green' : 'dot-red'}"></span><div style="flex:1"><div style="font-size:13px">${escapeHtml(n.message)}</div><div class="text-muted">${new Date(n.createdAt).toLocaleString('ru-RU')}</div></div>
+          ${!n.isRead ? `<button class="btn btn-sm btn-muted" onclick="markRead(${n.id})">OK</button>` : ''}
+        </div>`).join('') : '<p class="text-muted">Уведомлений нет</p>';
+    } catch (e) { console.error(e); }
+  }
+
+  async function markRead(id) {
+    try { await api('PATCH', `/notifications/${id}/read`); loadNotifications(); } catch {}
+  }
+
+  async function markAllRead() {
+    try { await api('PATCH', '/notifications/read-all'); loadNotifications(); } catch {}
+  }
+
+  async function checkEtiquette() {
+    const regId = document.getElementById('etiquetteRegistryId').value;
+    try {
+      const url = regId ? `/notifications/etiquette?registryId=${regId}` : '/notifications/etiquette';
+      const data = await api('GET', url);
+      document.getElementById('etiquetteResult').innerHTML = `<div class="alert alert-${data.canSendNotification ? 'success' : 'info'} show" style="margin-top:12px">${escapeHtml(data.explanation)}<br><small>Период kuttykau: ${data.isKuttykauPeriod ? 'Да' : 'Нет'} · Приличный час: ${data.isPoliteHour ? 'Да' : 'Нет'}</small></div>`;
+    } catch (e) { alert(e.message); }
+  }
+
+  function switchAdminTab(tab) {
+    ['users','registries','contributions'].forEach(t => {
+      document.getElementById(`admin-${t}`).style.display = t === tab ? '' : 'none';
+      document.getElementById(`atab-${t}`).classList.toggle('active', t === tab);
+    });
+  }
+
+  async function loadAdminUsers() {
+    try {
+      const data = await api('GET', '/admin/users');
+      document.getElementById('adminUsersList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${(data.data || []).map(u => `<tr><td>${u.id}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.email)}</td><td>${u.role}</td><td>${u.isSuspended ? 'Заблокирован' : 'Активен'}</td><td><button class="btn btn-sm ${u.isSuspended ? 'btn-success' : 'btn-danger'}" onclick="suspendUser(${u.id}, ${!u.isSuspended})">${u.isSuspended ? 'Разблокировать' : 'Заблокировать'}</button></td></tr>`).join('')}</tbody></table></div><p class="text-muted mt-8">Всего: ${data.total}</p>`;
+    } catch (e) { alert(e.message); }
+  }
+
+  async function suspendUser(id, suspend) {
+    try { await api('PATCH', `/admin/users/${id}/suspend`, { isSuspended: suspend }); loadAdminUsers(); } catch (e) { alert(e.message); }
+  }
+
+  async function loadAdminRegistries() {
+    try {
+      const data = await api('GET', '/admin/registries');
+      document.getElementById('adminRegistriesList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Название</th><th>Пара</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${(data.data || []).map(r => `<tr><td>${r.id}</td><td>${escapeHtml(r.title)}</td><td>${escapeHtml(r.couple?.name || '-')}</td><td>${r.status}</td><td>${r.status !== 'CLOSED' ? `<button class="btn btn-sm btn-danger" onclick="closeRegistry(${r.id})">Закрыть</button>` : '-'}</td></tr>`).join('')}</tbody></table></div>`;
+    } catch (e) { alert(e.message); }
+  }
+
+  async function closeRegistry(id) {
+    try { await api('PATCH', `/admin/registries/${id}/close`); loadAdminRegistries(); } catch (e) { alert(e.message); }
+  }
+
+  async function loadAdminContributions() {
+    try {
+      const data = await api('GET', '/admin/contributions');
+      document.getElementById('adminContributionsList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Гость</th><th>Подарок</th><th>Сумма</th><th>Валюта</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${(data.data || []).map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.guest?.name || '-')}</td><td>${escapeHtml(c.gift?.title || '-')}</td><td>${formatKzt(c.amountKzt)}</td><td>${c.originalCurrency}</td><td>${c.status}</td><td><button class="btn btn-sm" onclick="flagContribution(${c.id})" style="background:#e67e22;color:white">Флаг</button></td></tr>`).join('')}</tbody></table></div>`;
+    } catch (e) { alert(e.message); }
+  }
+
+  async function flagContribution(id) {
+    const reason = prompt('Причина флага:');
+    if (!reason) return;
+    try { await api('PATCH', `/admin/contributions/${id}/flag`, { reason }); alert('Вклад отмечен.'); } catch (e) { alert(e.message); }
+  }
+
+  window.onload = function init() {
+    updateNav();
+    const params = new URLSearchParams(window.location.search);
+    const verifyToken = params.get('token');
+    resetToken = params.get('reset') || '';
+    const shareToken = params.get('share');
+    if (verifyToken) return verifyEmailFromUrl(verifyToken);
+    if (resetToken) return showPage('reset');
+    if (shareToken) {
+      showPage('guest');
+      document.getElementById('shareTokenInput').value = shareToken;
+      loadPublicRegistry();
+      return;
+    }
+    if (currentRegistryId) renderCurrentRegistryHeader();
+    if (currentUser) showPage(currentUser.role === 'COUPLE' ? 'registry' : currentUser.role === 'ADMIN' ? 'admin' : 'guest');
+    else showPage('home');
+  };
+</script>
+</body>
+</html>

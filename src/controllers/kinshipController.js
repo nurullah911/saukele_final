@@ -1,7 +1,6 @@
 'use strict';
 
 const kinshipService = require('../services/kinshipService');
-const prisma = require('../utils/prisma');
 
 async function setKinship(req, res) {
   const relation = await kinshipService.setKinship(req.user.sub, req.body);
@@ -26,47 +25,9 @@ async function deleteKinship(req, res) {
   res.status(204).send();
 }
 
-// Family tree built in application layer using Prisma ORM only (zero raw SQL)
-// COMPLEXITY_REQ: self-referential table traversal with tier-based gift obligations
 async function getFamilyTree(req, res) {
-  const coupleId = Number(req.params.coupleId);
-
-  // Fetch all relations to this couple using Prisma ORM
-  const relations = await prisma.familyRelation.findMany({
-    where: { toUserId: coupleId },
-    include: {
-      fromUser: {
-        select: { id: true, name: true, email: true }
-      }
-    },
-    orderBy: [{ tier: 'asc' }, { fromUser: { name: 'asc' } }]
-  });
-
-  const TIER_AMOUNTS = { 1: 100000, 2: 50000, 3: 30000, 4: 15000 };
-
-  // Build family tree in application layer — no raw SQL
-  // Group by tier for clear hierarchy
-  const treeByTier = {};
-  for (const rel of relations) {
-    if (!treeByTier[rel.tier]) treeByTier[rel.tier] = [];
-    treeByTier[rel.tier].push({
-      guestId: rel.fromUser.id,
-      guestName: rel.fromUser.name,
-      guestEmail: rel.fromUser.email,
-      kinshipType: rel.kinshipType,
-      tier: rel.tier,
-      suggestedContributionKzt: TIER_AMOUNTS[rel.tier] || 0,
-    });
-  }
-
-  const familyTree = Object.values(treeByTier).flat();
-
-  res.status(200).json({
-    coupleId,
-    totalGuests: familyTree.length,
-    familyTree,
-    treeByTier,
-  });
+  const tree = await kinshipService.getFamilyTree(Number(req.params.coupleId));
+  res.status(200).json(tree);
 }
 
 module.exports = { setKinship, getKinship, updateKinship, deleteKinship, getFamilyTree };

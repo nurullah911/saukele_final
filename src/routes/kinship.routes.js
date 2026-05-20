@@ -8,19 +8,19 @@ const { requireRole } = require('../middleware/roleGuard');
 
 const router = express.Router();
 
-// POST /api/kinship — set kinship
+// POST /api/kinship - set kinship
 router.post('/', requireAuth, requireRole('GUEST'), asyncHandler(controller.setKinship));
 
-// GET /api/kinship/:coupleId — get own kinship + suggested amount
+// GET /api/kinship/:coupleId - get own kinship + suggested amount
 router.get('/:coupleId', requireAuth, requireRole('GUEST'), asyncHandler(controller.getKinship));
 
-// PUT /api/kinship/:coupleId — update kinship type
+// PUT /api/kinship/:coupleId - update kinship type
 router.put('/:coupleId', requireAuth, requireRole('GUEST'), asyncHandler(controller.updateKinship));
 
-// DELETE /api/kinship/:coupleId — remove kinship
+// DELETE /api/kinship/:coupleId - remove kinship
 router.delete('/:coupleId', requireAuth, requireRole('GUEST'), asyncHandler(controller.deleteKinship));
 
-// GET /api/kinship/tree/:coupleId — recursive family tree (self-referential CTE)
-router.get('/tree/:coupleId', requireAuth, asyncHandler(controller.getFamilyTree));
+// GET /api/kinship/:coupleId/tree - recursive family tree (self-referential CTE)
+router.get('/:coupleId/tree', requireAuth, asyncHandler(controller.getFamilyTree));
 
 module.exports = router;
