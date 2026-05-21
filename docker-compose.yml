@@ -50,6 +50,7 @@ services:
     build: ./frontend
     environment:
       API_URL: ""
+      NGINX_API_URL: "http://api:3000/api/"
     ports:
       - "80:80"
     depends_on:
