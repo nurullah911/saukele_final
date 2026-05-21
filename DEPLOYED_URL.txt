@@ -1,1 +1,1 @@
-Set this to your deployed frontend URL.
+https://heroic-inspiration-production-0d13.up.railway.app/
