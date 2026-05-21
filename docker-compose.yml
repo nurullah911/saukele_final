@@ -1,7 +1,6 @@
 services:
   postgres:
     image: postgres:15
-    container_name: saukele-postgres
     environment:
       POSTGRES_USER: saukele
       POSTGRES_PASSWORD: saukele_password
@@ -18,7 +17,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: saukele-redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -29,7 +27,6 @@ services:
 
   api:
     build: .
-    container_name: saukele-api
     env_file:
       - .env
     environment:
@@ -39,6 +36,7 @@ services:
       REDIS_PORT: 6379
       NODE_ENV: development
       PORT: 3000
+      FRONTEND_URL: http://localhost
     ports:
       - "3000:3000"
     depends_on:
@@ -50,7 +48,8 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: saukele-frontend
+    environment:
+      API_URL: ""
     ports:
       - "80:80"
     depends_on:

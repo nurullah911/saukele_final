@@ -4,7 +4,7 @@ const env = require('./config/env');
 // Запускаем email воркер
 require('./workers/emailWorker');
 
-app.listen(env.port, () => {
-  console.log(`Saukele API running on http://localhost:${env.port}`);
-  console.log(`Swagger UI available at http://localhost:${env.port}/docs`);
+app.listen(env.port, '0.0.0.0', () => {
+  console.log(`API listening on port ${env.port}`);
+  console.log('Swagger UI available at /docs');
 });

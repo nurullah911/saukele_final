@@ -26,8 +26,30 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+const localOrigins = new Set([
+  'http://localhost',
+  'http://localhost:80',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1',
+]);
+
+const allowedOrigins = new Set([
+  env.frontendUrl,
+  ...localOrigins,
+].filter(Boolean));
+
 app.use(helmet());
-app.use(cors({ origin: env.frontendUrl, credentials: true }));
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+
+    console.error(`[CORS] Rejected origin=${origin}; FRONTEND_URL=${env.frontendUrl || '(not set)'}`);
+    return callback(new Error('Not allowed by CORS'));
+  },
+}));
 app.use(express.json({ limit: '1mb' }));
 if (env.nodeEnv !== 'test') app.use(morgan('dev'));
 app.use(apiLimiter);

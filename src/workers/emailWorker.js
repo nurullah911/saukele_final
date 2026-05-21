@@ -4,6 +4,7 @@ if (process.env.NODE_ENV === 'test') {
   module.exports = { emailQueue: { add: async () => null } };
 } else {
   const { Worker, Queue } = require('bullmq');
+  const { createRedisClient, getRedisConnectionOptions } = require('../utils/redis');
   const {
     sendVerificationEmail,
     sendPasswordResetEmail,
@@ -12,33 +13,50 @@ if (process.env.NODE_ENV === 'test') {
     sendRegistryPublishedEmail,
   } = require('../utils/email');
 
-  const connection = {
-    host: process.env.REDIS_HOST || 'redis',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-  };
+  if (!getRedisConnectionOptions({ forBullMq: true })) {
+    const message = '[EmailWorker] Redis is not configured. Set REDIS_URL or REDIS_HOST/REDIS_PORT.';
+    if (process.env.NODE_ENV === 'production') console.error(message);
+    else console.warn(`${message} Email jobs will fail until Redis is available.`);
+  }
 
-  // Queue — exported so other services can add jobs
-  const emailQueue = new Queue('emails', { connection });
+  const connection = createRedisClient({ forBullMq: true });
 
-  // Worker — processes jobs from queue asynchronously
-  const emailWorker = new Worker('emails', async (job) => {
-    const { type, data } = job.data;
-    console.log(`[EmailWorker] Processing job ${job.id} type=${type}`);
+  if (!connection) {
+    module.exports = {
+      emailQueue: {
+        add: async () => {
+          throw new Error('Redis is not configured. Set REDIS_URL or REDIS_HOST/REDIS_PORT to enqueue email jobs.');
+        },
+      },
+    };
+  } else {
+    const emailQueue = new Queue('emails', { connection });
 
-    if (type === 'verification')        await sendVerificationEmail(data.to, data.token);
-    else if (type === 'passwordReset')  await sendPasswordResetEmail(data.to, data.token);
-    else if (type === 'giftReserved')   await sendGiftReservedEmail(data.to, data.giftName, data.reservedBy);
-    else if (type === 'contribution')   await sendContributionFundedEmail(data.to, data.giftName, data.amount, data.currency);
-    else if (type === 'registryPublished') await sendRegistryPublishedEmail(data.to, data.title, data.shareUrl);
-    else console.warn(`[EmailWorker] Unknown job type: ${type}`);
-  }, { connection });
+    const emailWorker = new Worker('emails', async (job) => {
+      const { type, data } = job.data;
+      console.log(`[EmailWorker] Processing job ${job.id} type=${type}`);
 
-  emailWorker.on('completed', (job) => {
-    console.log(`[EmailWorker] Job ${job.id} (${job.data.type}) completed`);
-  });
-  emailWorker.on('failed', (job, err) => {
-    console.error(`[EmailWorker] Job ${job.id} failed:`, err.message);
-  });
+      if (type === 'verification') return sendVerificationEmail(data.to, data.token);
+      if (type === 'passwordReset') return sendPasswordResetEmail(data.to, data.token);
+      if (type === 'giftReserved') return sendGiftReservedEmail(data.to, data.giftName, data.reservedBy);
+      if (type === 'contribution') return sendContributionFundedEmail(data.to, data.giftName, data.amount, data.currency);
+      if (type === 'registryPublished') return sendRegistryPublishedEmail(data.to, data.title, data.shareUrl);
 
-  module.exports = { emailQueue };
+      throw new Error(`Unknown email job type: ${type}`);
+    }, { connection });
+
+    emailWorker.on('completed', (job) => {
+      console.log(`[EmailWorker] Job ${job.id} (${job.data.type}) completed`);
+    });
+
+    emailWorker.on('failed', (job, err) => {
+      console.error(`[EmailWorker] Job ${job?.id || 'unknown'} failed:`, err.message);
+    });
+
+    emailWorker.on('error', (err) => {
+      console.error('[EmailWorker] Worker error:', err.message);
+    });
+
+    module.exports = { emailQueue };
+  }
 }

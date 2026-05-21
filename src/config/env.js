@@ -24,8 +24,13 @@ module.exports = {
   port: Number(process.env.PORT || 3000),
   nodeEnv: process.env.NODE_ENV,
   databaseUrl: process.env.DATABASE_URL,
+  redisUrl: process.env.REDIS_URL,
+  redisHost: process.env.REDIS_HOST,
+  redisPort: Number(process.env.REDIS_PORT || 6379),
   jwtSecret: process.env.JWT_SECRET,
   refreshSecret: process.env.REFRESH_SECRET,
   paymentWebhookSecret: process.env.PAYMENT_WEBHOOK_SECRET,
+  brevoApiKey: process.env.BREVO_API_KEY,
+  emailFrom: process.env.EMAIL_FROM,
   frontendUrl: process.env.FRONTEND_URL
 };

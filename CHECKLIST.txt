@@ -1,4 +1,4 @@
-[ ] Application is LIVE on dashboard.deployrocks.com with working public URL
+[ ] Application is live on the chosen hosting provider with a working public URL
 [ ] docker compose up boots entire stack (backend + frontend + postgres + redis) locally
 [ ] jest runs and passes with full test suite
 [ ] Swagger UI / API docs is accessible on the deployed URL and covers ALL endpoints

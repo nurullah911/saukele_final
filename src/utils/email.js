@@ -1,20 +1,38 @@
 'use strict';
 
-const FROM = process.env.EMAIL_FROM || 'noreply@saukele.kz';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FROM = process.env.EMAIL_FROM;
+const FRONTEND_URL = process.env.FRONTEND_URL;
+const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
 
-async function sendEmail({ to, subject, html }) {
+function linkFor(path, token) {
+  return `${FRONTEND_URL}${path}?token=${encodeURIComponent(token)}`;
+}
+
+async function sendEmail({ to, subject, html, fallbackLink, fallbackToken }) {
   if (isTest) return { messageId: 'test-mock' };
+
   if (!process.env.BREVO_API_KEY) {
-    console.warn('[Email] BREVO_API_KEY not set — skipping');
-    return;
+    const message = '[Email] BREVO_API_KEY is not set';
+    if (isProduction) {
+      console.error(`${message}; email was not sent to ${to}`);
+      throw new Error('BREVO_API_KEY is required to send email in production');
+    }
+
+    console.warn(`${message}; development fallback for ${to}`);
+    if (fallbackLink) console.warn(`[Email] Link: ${fallbackLink}`);
+    if (fallbackToken) console.warn(`[Email] Token: ${fallbackToken}`);
+    return { messageId: 'development-fallback' };
+  }
+
+  if (!FROM) {
+    throw new Error('EMAIL_FROM is required and must be a Brevo verified sender');
   }
 
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      'accept': 'application/json',
+      accept: 'application/json',
       'api-key': process.env.BREVO_API_KEY,
       'content-type': 'application/json',
     },
@@ -28,36 +46,43 @@ async function sendEmail({ to, subject, html }) {
 
   if (!response.ok) {
     const err = await response.text();
-    console.error('[Email] Brevo error:', err);
+    console.error(`[Email] Brevo rejected email to ${to}. status=${response.status} response=${err}`);
     throw new Error(`Brevo API error: ${response.status}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log(`[Email] Brevo accepted email to ${to}`);
+  return result;
 }
 
 async function sendVerificationEmail(to, token) {
-  const link = `${FRONTEND_URL}/verify-email?token=${token}`;
+  const link = linkFor('/verify-email', token);
   return sendEmail({
     to,
-    subject: 'Подтвердите ваш аккаунт — Saukele',
+    subject: 'Подтвердите ваш аккаунт - Saukele',
+    fallbackLink: link,
+    fallbackToken: token,
     html: `
       <h2>Добро пожаловать в Saukele!</h2>
-      <p>Нажмите на ссылку ниже чтобы подтвердить ваш email:</p>
+      <p>Нажмите на ссылку ниже, чтобы подтвердить ваш email:</p>
       <a href="${link}" style="background:#2E75B6;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin:16px 0">Подтвердить email</a>
       <p>Или скопируйте ссылку: ${link}</p>
+      <p>Ваш код подтверждения: ${token}</p>
       <p>Ссылка действует 24 часа.</p>
     `,
   });
 }
 
 async function sendPasswordResetEmail(to, token) {
-  const link = `${FRONTEND_URL}/reset-password?token=${token}`;
+  const link = linkFor('/reset-password', token);
   return sendEmail({
     to,
-    subject: 'Сброс пароля — Saukele',
+    subject: 'Сброс пароля - Saukele',
+    fallbackLink: link,
+    fallbackToken: token,
     html: `
       <h2>Сброс пароля</h2>
-      <p>Нажмите на ссылку ниже чтобы установить новый пароль:</p>
+      <p>Нажмите на ссылку ниже, чтобы установить новый пароль:</p>
       <a href="${link}" style="background:#2E75B6;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin:16px 0">Сбросить пароль</a>
       <p>Или скопируйте ссылку: ${link}</p>
       <p>Ссылка действует 1 час.</p>
@@ -68,11 +93,11 @@ async function sendPasswordResetEmail(to, token) {
 async function sendGiftReservedEmail(to, giftName, reservedBy) {
   return sendEmail({
     to,
-    subject: 'Подарок зарезервирован — Saukele',
+    subject: 'Подарок зарезервирован - Saukele',
     html: `
       <h2>Хорошие новости!</h2>
       <p>Гость <strong>${reservedBy}</strong> зарезервировал подарок: <strong>${giftName}</strong>.</p>
-      <p>Откройте ваш реестр чтобы увидеть актуальный статус.</p>
+      <p>Откройте ваш реестр, чтобы увидеть актуальный статус.</p>
     `,
   });
 }
@@ -80,10 +105,10 @@ async function sendGiftReservedEmail(to, giftName, reservedBy) {
 async function sendContributionFundedEmail(to, giftName, amount, currency) {
   return sendEmail({
     to,
-    subject: 'Новый вклад в подарок — Saukele',
+    subject: 'Новый вклад в подарок - Saukele',
     html: `
       <h2>Новый вклад!</h2>
-      <p>Гость внёс <strong>${amount} ${currency}</strong> в подарок: <strong>${giftName}</strong>.</p>
+      <p>Гость внес <strong>${amount} ${currency}</strong> в подарок: <strong>${giftName}</strong>.</p>
     `,
   });
 }
@@ -91,7 +116,7 @@ async function sendContributionFundedEmail(to, giftName, amount, currency) {
 async function sendRegistryPublishedEmail(to, registryTitle, shareUrl) {
   return sendEmail({
     to,
-    subject: 'Ваш реестр опубликован — Saukele',
+    subject: 'Ваш реестр опубликован - Saukele',
     html: `
       <h2>Реестр опубликован!</h2>
       <p>Ваш реестр <strong>${registryTitle}</strong> теперь доступен гостям.</p>

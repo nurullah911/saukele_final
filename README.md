@@ -18,6 +18,8 @@ docker compose up --build
 - API: http://localhost:3000
 - Swagger: http://localhost:3000/docs
 
+Full deployment instructions are in `DEPLOY.md`.
+
 ## Local Development
 
 ```bash
