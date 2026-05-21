@@ -758,8 +758,13 @@
           <label>Токен подтверждения</label>
           <input type="text" id="verifyTokenInput" placeholder="Вставьте токен из письма" />
         </div>
+        <div class="form-group" style="text-align:left">
+          <label>Email</label>
+          <input type="email" id="verifyEmailInput" placeholder="email@example.com" />
+        </div>
         <div id="verifyAlert" class="alert" style="text-align:left"></div>
         <button class="btn btn-gold mt-24" onclick="verifyEmail()" id="verifySubmitBtn" style="width:100%">Подтвердить email</button>
+        <button class="btn btn-outline mt-8" onclick="resendVerificationEmail()" id="verifyResendBtn" style="width:100%">Отправить письмо повторно</button>
         <button class="btn btn-gold mt-24" onclick="showPage('auth'); switchAuthTab('login')" id="verifyGoLogin" style="display:none">Войти в систему</button>
       </div>
     </div>
@@ -1165,6 +1170,7 @@
           <div class="card-title" style="margin:0;flex:1">Все пользователи</div>
           <button class="btn btn-outline btn-sm" onclick="loadAdminUsers()">Обновить</button>
         </div>
+        <div id="adminUsersAlert" class="alert"></div>
         <div class="table-wrap">
           <div id="adminUsersList"><div class="empty-state"><span class="empty-icon"></span><p>Нажмите "Обновить"</p></div></div>
         </div>
@@ -1212,6 +1218,7 @@
   let currentRegistryId = null;
   let currentRegistryShareToken = null;
   let modalGiftId = null;
+  let pendingVerificationEmail = '';
 
   // ── HELPERS ─────────────────────────────────────────────────
   async function api(method, path, body, auth = true) {
@@ -1316,13 +1323,14 @@
   // ── REGISTER ────────────────────────────────────────────────
   async function register() {
     try {
+      pendingVerificationEmail = document.getElementById('regEmail').value.trim();
       await api('POST', '/auth/register', {
         name: document.getElementById('regName').value,
-        email: document.getElementById('regEmail').value,
+        email: pendingVerificationEmail,
         password: document.getElementById('regPassword').value,
         role: document.getElementById('regRole').value,
       }, false);
-      showVerifyForm();
+      showVerifyForm('', pendingVerificationEmail);
       showPage('verify');
     } catch (e) { showAlert('registerAlert', e.message); }
   }
@@ -1384,12 +1392,14 @@
   }
 
   // ── VERIFY EMAIL ─────────────────────────────────────────────
-  function showVerifyForm(token = '') {
+  function showVerifyForm(token = '', email = pendingVerificationEmail) {
     document.getElementById('verifyIcon').textContent = '...';
     document.getElementById('verifyTitle').textContent = 'Подтверждение email';
     document.getElementById('verifyMsg').textContent = 'Проверьте email. Если ссылка не открывается, скопируйте токен из письма и вставьте его сюда.';
     document.getElementById('verifyTokenInput').value = token;
+    document.getElementById('verifyEmailInput').value = email || '';
     document.getElementById('verifySubmitBtn').style.display = '';
+    document.getElementById('verifyResendBtn').style.display = '';
     document.getElementById('verifyGoLogin').style.display = 'none';
     document.getElementById('verifyAlert').classList.remove('show');
   }
@@ -1412,6 +1422,21 @@
   async function verifyEmailAuto(token) {
     showVerifyForm(token);
     await verifyEmail();
+  }
+
+  async function resendVerificationEmail() {
+    const email = document.getElementById('verifyEmailInput').value.trim();
+    if (!email) { showAlert('verifyAlert', 'Введите email'); return; }
+    try {
+      await api('POST', '/auth/resend-verification', { email }, false);
+      pendingVerificationEmail = email;
+      showAlert('verifyAlert', 'Письмо отправлено повторно. Проверьте email.', 'success');
+    } catch (e) {
+      const message = e.message && e.message !== 'Ошибка запроса'
+        ? e.message
+        : 'Не удалось отправить письмо повторно';
+      showAlert('verifyAlert', message);
+    }
   }
 
   // ── PROFILE ──────────────────────────────────────────────────
@@ -1940,6 +1965,7 @@
                   <button class="btn btn-xs ${u.isSuspended ? 'btn-success' : 'btn-danger'}" onclick="suspendUser(${u.id}, ${!u.isSuspended})" style="margin-top:0">
                     ${u.isSuspended ? 'Разблокировать' : 'Заблокировать'}
                   </button>
+                  ${currentUser?.role === 'ADMIN' ? `<button class="btn btn-xs btn-danger" onclick="deleteAdminUser(${u.id})" style="margin-top:0;margin-left:6px">Удалить</button>` : ''}
                 </td>
               </tr>
             `).join('')}
@@ -1952,10 +1978,21 @@
 
   async function suspendUser(id, suspend) {
     try {
-      const action = suspend ? 'suspend' : 'unsuspend';
-      await api('PATCH', `/admin/users/${id}/${action}`);
+      await api('PATCH', `/admin/users/${id}/suspend`, { isSuspended: suspend });
       loadAdminUsers();
     } catch (e) { alert(e.message); }
+  }
+
+  async function deleteAdminUser(id) {
+    if (currentUser?.role !== 'ADMIN') return;
+    if (!confirm('Удалить этого пользователя?')) return;
+    try {
+      await api('DELETE', `/admin/users/${id}`);
+      showAlert('adminUsersAlert', 'Пользователь удален', 'success');
+      await loadAdminUsers();
+    } catch (e) {
+      showAlert('adminUsersAlert', e.message);
+    }
   }
 
   async function loadAdminRegistries() {
