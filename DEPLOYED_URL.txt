@@ -1,2 +1,1 @@
-REPLACE_WITH_YOUR_DEPLOYROCKS_URL
-Example: https://saukele-nurullah.deployrocks.com
+https://saukelefinal-production.up.railway.app
