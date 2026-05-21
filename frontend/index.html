@@ -1962,7 +1962,7 @@
                 <td><span class="badge badge-single">${u.role}</span></td>
                 <td><span class="dot ${u.isSuspended ? 'dot-red' : 'dot-green'}"></span>${u.isSuspended ? 'Заблокирован' : 'Активен'}</td>
                 <td>
-                  <button class="btn btn-xs ${u.isSuspended ? 'btn-success' : 'btn-danger'}" onclick="suspendUser(${u.id}, ${!u.isSuspended})" style="margin-top:0">
+                  <button class="btn btn-xs ${u.isSuspended ? 'btn-success' : 'btn-danger'}" onclick="${u.isSuspended ? `unsuspendUser(${u.id})` : `suspendUser(${u.id})`}" style="margin-top:0">
                     ${u.isSuspended ? 'Разблокировать' : 'Заблокировать'}
                   </button>
                   ${currentUser?.role === 'ADMIN' ? `<button class="btn btn-xs btn-danger" onclick="deleteAdminUser(${u.id})" style="margin-top:0;margin-left:6px">Удалить</button>` : ''}
@@ -1978,9 +1978,24 @@
 
   async function suspendUser(id, suspend) {
     try {
-      await api('PATCH', `/admin/users/${id}/suspend`, { isSuspended: suspend });
+      await api('PATCH', `/admin/users/${id}/suspend`, { isSuspended: suspend ?? true });
       loadAdminUsers();
     } catch (e) { alert(e.message); }
+  }
+
+  async function unsuspendUser(id) {
+    if (currentUser?.role !== 'ADMIN') return;
+    if (!confirm('Разблокировать этого пользователя?')) return;
+    try {
+      await api('PATCH', `/admin/users/${id}/unsuspend`);
+      showAlert('adminUsersAlert', 'Пользователь разблокирован', 'success');
+      await loadAdminUsers();
+    } catch (e) {
+      const message = e.message && e.message !== 'Ошибка запроса'
+        ? e.message
+        : 'Не удалось разблокировать пользователя';
+      showAlert('adminUsersAlert', message);
+    }
   }
 
   async function deleteAdminUser(id) {

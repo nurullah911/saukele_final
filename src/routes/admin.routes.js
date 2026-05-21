@@ -13,6 +13,7 @@ const admin = [requireAuth, requireRole('ADMIN')];
 router.get('/users',                   ...admin, asyncHandler(controller.listUsers));
 router.get('/users/:id',               ...admin, asyncHandler(controller.getUser));
 router.patch('/users/:id/suspend',     ...admin, asyncHandler(controller.suspendUser));
+router.patch('/users/:id/unsuspend',   ...admin, asyncHandler(controller.unsuspendUser));
 router.delete('/users/:id',            ...admin, asyncHandler(controller.deleteUser));
 
 // ── Registries ─────────────────────────────────────────────────

@@ -6,6 +6,10 @@ const { publicUser } = require('../services/authService');
 
 // ── USERS ──────────────────────────────────────────────────────
 
+function adminUser(user) {
+  return { ...publicUser(user), isSuspended: user.isSuspended };
+}
+
 async function listUsers(req, res) {
   const page = Math.max(Number(req.query.page || 1), 1);
   const limit = Math.min(Math.max(Number(req.query.limit || 20), 1), 100);
@@ -13,13 +17,13 @@ async function listUsers(req, res) {
     prisma.user.findMany({ skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
     prisma.user.count()
   ]);
-  res.status(200).json({ data: users.map(publicUser), total, page });
+  res.status(200).json({ data: users.map(adminUser), total, page });
 }
 
 async function getUser(req, res) {
   const user = await prisma.user.findUnique({ where: { id: Number(req.params.id) } });
   if (!user) throw new HttpError(404, 'User not found');
-  res.status(200).json(publicUser(user));
+  res.status(200).json(adminUser(user));
 }
 
 async function suspendUser(req, res) {
@@ -31,7 +35,18 @@ async function suspendUser(req, res) {
     where: { id },
     data: { isSuspended: req.body.isSuspended ?? true },
   });
-  res.status(200).json(publicUser(updated));
+  res.status(200).json(adminUser(updated));
+}
+
+async function unsuspendUser(req, res) {
+  const id = Number(req.params.id);
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new HttpError(404, 'User not found');
+  const updated = await prisma.user.update({
+    where: { id },
+    data: { isSuspended: false },
+  });
+  res.status(200).json({ message: 'User unsuspended successfully', user: adminUser(updated) });
 }
 
 async function deleteUser(req, res) {
@@ -131,7 +146,7 @@ async function flagContribution(req, res) {
 }
 
 module.exports = {
-  listUsers, getUser, suspendUser, deleteUser,
+  listUsers, getUser, suspendUser, unsuspendUser, deleteUser,
   listRegistries, closeRegistry, deleteRegistry,
   listContributions, flagContribution,
 };
