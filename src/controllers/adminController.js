@@ -90,9 +90,19 @@ async function listContributions(req, res) {
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        amountKzt: true,
+        amountOriginal: true,
+        originalCurrency: true,
+        exchangeRateAtTime: true,
+        lockedAt: true,
+        status: true,
+        paymentRef: true,
+        message: true,
+        createdAt: true,
         guest: { select: { id: true, name: true, email: true } },
-        gift: { select: { id: true, title: true } }
+        gift: { select: { id: true, title: true } },
       }
     }),
     prisma.contribution.count()

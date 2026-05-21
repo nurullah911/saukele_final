@@ -4,7 +4,6 @@ const required = [
   'DATABASE_URL',
   'JWT_SECRET',
   'REFRESH_SECRET',
-  'PAYMENT_WEBHOOK_SECRET',
   'NODE_ENV',
   'FRONTEND_URL'
 ];

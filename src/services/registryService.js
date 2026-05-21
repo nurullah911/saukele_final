@@ -88,10 +88,31 @@ async function publish(userId, registryId) {
 async function getById(userId, registryId) {
   const registry = await prisma.registry.findUnique({
     where: { id: registryId },
-    include: { gifts: { where: { isPrivate: false } } }
+    include: {
+      gifts: {
+        where: { isPrivate: false },
+        include: {
+          contributions: {
+            where: { status: 'FUNDED' }
+          },
+          images: {
+            where: { isPrimary: true },
+            take: 1
+          }
+        }
+      }
+    }
   });
   if (!registry) throw new HttpError(404, 'Registry not found');
-  return registry;
+
+  const giftsWithFunding = registry.gifts.map(gift => ({
+    ...gift,
+    totalFunded: gift.contributions.reduce((sum, contribution) => (
+      sum + parseFloat(contribution.amountKzt)
+    ), 0)
+  }));
+
+  return { ...registry, gifts: giftsWithFunding };
 }
 
 module.exports = { createRegistry, listOwn, getByShareToken, publish, getById };

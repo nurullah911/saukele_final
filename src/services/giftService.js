@@ -69,7 +69,10 @@ async function getGift(id, viewerUserId) {
 
 async function reserveGift(userId, giftId) {
   return prisma.$transaction(async (tx) => {
-    const gift = await tx.gift.findUnique({ where: { id: giftId } });
+    const gift = await tx.gift.findUnique({
+      where: { id: giftId },
+      include: { registry: { select: { coupleId: true } } }
+    });
     if (!gift) throw new HttpError(404, 'Gift not found');
     if (gift.giftType !== 'SINGLE') throw new HttpError(400, 'Only SINGLE gifts can be reserved');
     if (gift.status === 'PURCHASED' || gift.status === 'DELIVERED') throw new HttpError(422, 'Gift is already purchased');
@@ -80,6 +83,16 @@ async function reserveGift(userId, giftId) {
     const updated = await tx.gift.update({
       where: { id: giftId },
       data: { status: 'RESERVED', reservedByUserId: userId, reservedUntil },
+    });
+
+    await tx.notification.create({
+      data: {
+        userId: gift.registry.coupleId,
+        type: 'GIFT_RESERVED',
+        message: `Подарок "${gift.title}" был забронирован гостем`,
+        targetType: 'gift',
+        targetId: giftId
+      }
     });
 
     // EMAIL NOTIFICATION: notify couple that gift was reserved (business event #3)

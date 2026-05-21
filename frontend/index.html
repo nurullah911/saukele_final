@@ -3,368 +3,1221 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Saukele - Wedding Registry</title>
+  <title>Saukele — Свадебный реестр подарков</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8D5A3;
+      --gold-dark: #8B6914;
+      --cream: #FAF7F2;
+      --cream-dark: #F0EAE0;
+      --brown: #3D2B1F;
+      --brown-light: #6B4C3B;
+      --text: #2C1810;
+      --text-muted: #8B7355;
+      --white: #FFFFFF;
+      --error: #C0392B;
+      --success: #1E6B3C;
+      --shadow: 0 4px 24px rgba(61,43,31,0.10);
+      --shadow-lg: 0 12px 48px rgba(61,43,31,0.16);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; color: #222; }
-    nav { background: #1F4E79; color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    nav .logo { font-size: 22px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
-    nav .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
-    nav button { background: rgba(255,255,255,0.15); border: none; color: white; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-    nav button:hover { background: rgba(255,255,255,0.28); }
-    nav button.active { background: #2E75B6; }
-    .container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── ORNAMENT BG ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--brown);
+      border-bottom: 1px solid var(--gold-dark);
+      padding: 0 32px;
+      display: flex; align-items: center; gap: 16px;
+      height: 64px;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 2px;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
+
+    .nav-links {
+      display: flex; gap: 2px; flex: 1; flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,0.65);
+      padding: 8px 14px; border-radius: 6px;
+      cursor: pointer; font-family: 'Jost', sans-serif;
+      font-size: 13px; font-weight: 400;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover { color: var(--gold-light); background: rgba(255,255,255,0.06); }
+    .nav-btn.active { color: var(--gold); background: rgba(201,168,76,0.12); }
+
+    .nav-user {
+      display: flex; align-items: center; gap: 10px; margin-left: auto;
+    }
+
+    .user-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 24px; padding: 5px 14px 5px 10px;
+    }
+
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: var(--white);
+    }
+
+    .user-name { font-size: 13px; color: var(--cream); font-weight: 400; }
+    .role-tag {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+      padding: 2px 7px; border-radius: 10px;
+      background: var(--gold); color: var(--brown);
+    }
+
+    .btn-logout {
+      background: none; border: none;
+      color: rgba(255,255,255,0.45); cursor: pointer;
+      font-size: 12px; padding: 4px 8px;
+      border-radius: 4px; transition: color 0.2s;
+    }
+    .btn-logout:hover { color: var(--gold-light); }
+
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 960px; margin: 0 auto;
+      padding: 40px 24px;
+      position: relative; z-index: 1;
+    }
+
     .page { display: none; }
-    .page.active { display: block; }
-    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 20px; }
-    .card h2 { font-size: 18px; margin-bottom: 16px; color: #1F4E79; }
-    .card h3 { color: #1F4E79; margin-bottom: 6px; }
-    label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; margin-top: 12px; }
-    input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 7px; font-size: 14px; outline: none; }
-    input[type="checkbox"] { width: auto; margin-right: 6px; }
-    input:focus, select:focus, textarea:focus { border-color: #2E75B6; }
-    textarea { resize: vertical; min-height: 70px; }
-    .btn { display: inline-block; padding: 10px 20px; border: none; border-radius: 7px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 14px; }
-    .btn-primary { background: #2E75B6; color: white; }
-    .btn-primary:hover { background: #1F4E79; }
-    .btn-danger { background: #c0392b; color: white; }
+    .page.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SECTION TITLES ── */
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px; font-weight: 300;
+      color: var(--brown); margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .section-subtitle {
+      font-size: 14px; color: var(--text-muted);
+      margin-bottom: 32px; letter-spacing: 0.3px;
+    }
+
+    .divider-gold {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      margin: 32px 0;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(201,168,76,0.12);
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400;
+      color: var(--brown); margin-bottom: 20px;
+    }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--cream-dark);
+      border-radius: 8px;
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--cream);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+      background: var(--white);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .checkbox-row {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; margin-top: 4px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 18px; height: 18px; border-radius: 4px;
+      accent-color: var(--gold); cursor: pointer;
+    }
+
+    .checkbox-row span { font-size: 14px; color: var(--text); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 11px 24px; border: none; border-radius: 8px;
+      cursor: pointer; font-family: 'Jost', sans-serif;
+      font-size: 14px; font-weight: 500;
+      letter-spacing: 0.3px;
+      transition: all 0.2s; white-space: nowrap;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--white);
+      box-shadow: 0 2px 12px rgba(201,168,76,0.35);
+    }
+    .btn-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(201,168,76,0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold-dark);
+    }
+    .btn-outline:hover { background: rgba(201,168,76,0.08); }
+
+    .btn-danger {
+      background: var(--error); color: var(--white);
+    }
     .btn-danger:hover { background: #a93226; }
-    .btn-success { background: #1e6b3c; color: white; }
-    .btn-success:hover { background: #155129; }
-    .btn-sm { padding: 6px 12px; font-size: 12px; margin-top: 0; }
-    .btn-muted { background: #eef2f7; color: #1F4E79; }
-    .alert { padding: 10px 14px; border-radius: 7px; margin: 12px 0; font-size: 13px; display: none; }
-    .alert.show { display: block; }
-    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .gift-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); border-left: 4px solid #2E75B6; }
-    .gift-card.pool { border-left-color: #1e6b3c; }
-    .gift-card.private { border-left-color: #e67e22; }
-    .gift-card h4 { font-size: 15px; margin-bottom: 6px; }
-    .gift-card .price { font-size: 18px; font-weight: 700; color: #1F4E79; }
-    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin: 4px 2px 0 0; }
-    .badge-single { background: #e8f0fe; color: #1F4E79; }
-    .badge-pool { background: #e2f0e8; color: #1e6b3c; }
-    .badge-private { background: #fef3e2; color: #e67e22; }
-    .badge-available { background: #e2f0e8; color: #1e6b3c; }
-    .badge-reserved { background: #fff3cd; color: #856404; }
-    .badge-purchased { background: #d4edda; color: #155724; }
-    .badge-delivered { background: #d1ecf1; color: #0c5460; }
-    .badge-draft { background: #e8f0fe; color: #1F4E79; }
-    .badge-published { background: #d4edda; color: #155724; }
-    .badge-closed { background: #eee; color: #555; }
-    .progress-bar { background: #eee; border-radius: 8px; height: 8px; margin: 8px 0; overflow: hidden; }
-    .progress-fill { background: #2E75B6; border-radius: 8px; height: 100%; transition: width 0.3s; }
-    .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
-    .tab-btn { padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 7px; cursor: pointer; font-size: 13px; }
-    .tab-btn.active { background: #2E75B6; color: white; border-color: #2E75B6; }
-    .user-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 13px; }
-    .role-badge { background: #f39c12; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { background: #1F4E79; color: white; padding: 10px 12px; text-align: left; }
-    td { padding: 9px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
-    tr:hover td { background: #f8f9fa; }
+
+    .btn-success {
+      background: var(--success); color: var(--white);
+    }
+
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+    .btn-xs { padding: 4px 10px; font-size: 11px; }
+
+    .btn-ghost {
+      background: var(--cream-dark); color: var(--text-muted);
+    }
+    .btn-ghost:hover { background: var(--gold-light); color: var(--brown); }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 12px 16px; border-radius: 8px;
+      font-size: 13px; display: none; margin: 12px 0;
+      border-left: 3px solid;
+    }
+    .alert.show { display: block; animation: fadeIn 0.2s ease; }
+    .alert-success { background: #f0faf4; color: var(--success); border-color: var(--success); }
+    .alert-error { background: #fdf0f0; color: var(--error); border-color: var(--error); }
+    .alert-info { background: #f0f4fa; color: #1a4a8a; border-color: #1a4a8a; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex; gap: 0;
+      border-bottom: 1px solid var(--cream-dark);
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: none; border: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 13px; font-weight: 400;
+      color: var(--text-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .tab-btn:hover { color: var(--brown); }
+    .tab-btn.active {
+      color: var(--gold-dark); border-bottom-color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* ── GRID ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+    @media (max-width: 640px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── GIFT CARDS ── */
+    .gift-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--cream-dark);
+      box-shadow: 0 2px 12px rgba(61,43,31,0.06);
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gift-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(to right, var(--gold), var(--gold-light));
+    }
+
+    .gift-card.pool::before { background: linear-gradient(to right, #1e6b3c, #2e8b57); }
+    .gift-card.private::before { background: linear-gradient(to right, #8B4513, #CD853F); }
+
+    .gift-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(61,43,31,0.12);
+    }
+
+    .gift-card h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 400;
+      color: var(--brown); margin-bottom: 8px;
+    }
+
+    .gift-price {
+      font-size: 22px; font-weight: 600;
+      color: var(--gold-dark); margin-bottom: 10px;
+    }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.6px; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 12px;
+      margin: 2px 2px 0 0;
+    }
+
+    .badge-single { background: #EEF2FF; color: #3730A3; }
+    .badge-pool { background: #ECFDF5; color: #065F46; }
+    .badge-private { background: #FEF3C7; color: #92400E; }
+    .badge-available { background: #ECFDF5; color: #065F46; }
+    .badge-reserved { background: #FFFBEB; color: #92400E; }
+    .badge-purchased { background: #EFF6FF; color: #1E40AF; }
+    .badge-delivered { background: #F3E8FF; color: #6B21A8; }
+    .badge-pending { background: #FEF3C7; color: #92400E; }
+    .badge-funded { background: #ECFDF5; color: #065F46; }
+    .badge-refunded { background: #FEE2E2; color: #991B1B; }
+
+    /* ── PROGRESS ── */
+    .progress-bar {
+      background: var(--cream-dark);
+      border-radius: 100px; height: 6px;
+      margin: 10px 0 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(to right, var(--gold), var(--gold-dark));
+      transition: width 0.5s ease;
+    }
+    .progress-fill.pool-fill {
+      background: linear-gradient(to right, #2e8b57, #1e6b3c);
+    }
+
+    /* ── TABLE ── */
     .table-wrap { overflow-x: auto; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-    .dot-green { background: #1e6b3c; }
-    .dot-yellow { background: #f39c12; }
-    .dot-red { background: #c0392b; }
-    .dot-blue { background: #2E75B6; }
-    .hero { background: linear-gradient(135deg, #1F4E79, #2E75B6); color: white; text-align: center; padding: 48px 24px; border-radius: 12px; margin-bottom: 24px; }
-    .hero h1 { font-size: 32px; margin-bottom: 8px; }
-    .hero p { font-size: 16px; opacity: 0.88; margin-bottom: 20px; }
-    .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
-    .text-muted { color: #888; font-size: 13px; }
-    .mt-8 { margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: var(--brown);
+      color: var(--gold-light);
+      padding: 12px 14px; text-align: left;
+      font-weight: 500; letter-spacing: 0.3px;
+      font-size: 12px;
+    }
+    th:first-child { border-radius: 6px 0 0 0; }
+    th:last-child { border-radius: 0 6px 0 0; }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--cream-dark); color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--cream); }
+
+    /* ── STATUS DOT ── */
+    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .dot-green { background: var(--success); }
+    .dot-red { background: var(--error); }
+    .dot-gold { background: var(--gold); }
+    .dot-blue { background: #2563EB; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 64px;
+      position: relative;
+    }
+
+    .hero-ornament {
+      font-size: 48px; margin-bottom: 20px;
+      display: block;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 64px; font-weight: 300;
+      color: var(--brown);
+      line-height: 1.1; margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 300; font-style: italic;
+      color: var(--text-muted); margin-bottom: 32px;
+    }
+
+    .hero-divider {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      margin: 24px auto 32px;
+    }
+    .hero-divider::before, .hero-divider::after {
+      content: ''; flex: 1; max-width: 80px;
+      height: 1px; background: var(--gold);
+    }
+    .hero-divider span { color: var(--gold); font-size: 16px; }
+
+    /* ── FEATURE CARDS ── */
+    .feature-card {
+      background: var(--white);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 16px; padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 2px 16px rgba(61,43,31,0.06);
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(61,43,31,0.12);
+      border-color: var(--gold);
+    }
+    .feature-icon { font-size: 36px; margin-bottom: 14px; display: block; }
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; color: var(--brown);
+      margin-bottom: 8px;
+    }
+    .feature-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ── PROFILE CARD ── */
+    .profile-header {
+      display: flex; align-items: center; gap: 20px;
+      margin-bottom: 24px;
+    }
+    .profile-avatar-lg {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; color: var(--white);
+      border: 3px solid var(--gold-light);
+    }
+    .profile-info h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; color: var(--brown);
+    }
+    .profile-info p { font-size: 13px; color: var(--text-muted); }
+
+    /* ── REGISTRY ITEM ── */
+    .registry-item {
+      background: var(--white);
+      border: 1px solid var(--cream-dark);
+      border-radius: 12px; padding: 20px 24px;
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .registry-item:hover {
+      border-color: var(--gold);
+      box-shadow: 0 4px 20px rgba(201,168,76,0.12);
+    }
+    .registry-item-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .registry-item-info { flex: 1; }
+    .registry-item-info h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; color: var(--brown); margin-bottom: 4px;
+    }
+    .registry-item-info p { font-size: 12px; color: var(--text-muted); }
+
+    /* ── NOTIFICATION ITEM ── */
+    .notif-item {
+      display: flex; gap: 12px; padding: 14px 0;
+      border-bottom: 1px solid var(--cream-dark);
+      align-items: flex-start;
+    }
+    .notif-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--gold); margin-top: 5px; flex-shrink: 0;
+    }
+    .notif-dot.read { background: var(--cream-dark); }
+    .notif-text { flex: 1; font-size: 13px; line-height: 1.5; }
+    .notif-time { font-size: 11px; color: var(--text-muted); }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--cream-dark);
+      border-radius: 12px; padding: 20px;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; color: var(--gold-dark);
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ── MISC ── */
     .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .share-box { background: #eef5fb; border: 1px solid #d6e6f3; border-radius: 8px; padding: 10px 12px; margin-top: 10px; word-break: break-all; }
-    @media (max-width: 720px) {
-      nav { align-items: flex-start; flex-direction: column; }
-      .user-badge { flex-wrap: wrap; border-radius: 12px; }
+    .flex-1 { flex: 1; }
+    .text-muted { color: var(--text-muted); font-size: 13px; }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+
+    .empty-state {
+      text-align: center; padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; display: block; opacity: 0.5; }
+    .empty-state p { font-size: 14px; }
+
+    .share-token-box {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--cream); border: 1px solid var(--cream-dark);
+      border-radius: 8px; padding: 10px 14px;
+    }
+    .share-token-box code {
+      flex: 1; font-size: 12px; color: var(--text-muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .kinship-tier {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 8px;
+      background: var(--cream); margin-bottom: 8px;
+      border: 1px solid transparent; transition: border-color 0.2s;
+    }
+    .kinship-tier:hover { border-color: var(--gold); }
+    .kinship-tier-icon { font-size: 24px; }
+    .kinship-tier-info { flex: 1; }
+    .kinship-tier-info strong { display: block; font-size: 14px; color: var(--brown); }
+    .kinship-tier-info span { font-size: 12px; color: var(--text-muted); }
+    .kinship-amount { font-weight: 600; color: var(--gold-dark); font-size: 14px; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(44,24,16,0.6);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 16px;
+      padding: 32px; width: 100%; max-width: 420px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeIn 0.25s ease;
+    }
+    .modal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px; color: var(--brown); margin-bottom: 20px;
+    }
+
+    /* ── VERIFY/RESET PAGES ── */
+    .center-card {
+      max-width: 440px; margin: 60px auto 0;
+    }
+
+    .big-icon {
+      font-size: 56px; text-align: center;
+      display: block; margin-bottom: 16px;
     }
   </style>
 </head>
 <body>
+
+<!-- ── NAV ── -->
 <nav>
-  <div class="logo">Saukele</div>
-  <div class="nav-links" id="navLinks"></div>
-  <div id="userInfo" style="display:none">
-    <div class="user-badge">
-      <span id="userNameDisplay">-</span>
-      <span class="role-badge" id="userRoleDisplay">-</span>
-      <button onclick="logout()" style="background:rgba(255,255,255,0.2);border:none;color:white;cursor:pointer;padding:4px 10px;border-radius:10px;font-size:12px">Выйти</button>
+  <div class="nav-logo">✦ Saukele</div>
+  <div class="nav-links" id="navLinks">
+    <button class="nav-btn active" onclick="showPage('home')" id="nav-home" data-t="home">Главная</button>
+    <button class="nav-btn" onclick="showPage('auth')" id="nav-auth" data-t="login">Войти</button>
+  </div>
+  <button id="langToggle" onclick="toggleLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(201,168,76,0.3);color:var(--gold-light);padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.5px">🌐 EN</button>
+  <div class="nav-user" id="userInfo" style="display:none">
+    <div class="user-pill">
+      <div class="user-avatar" id="userAvatarNav">А</div>
+      <span class="user-name" id="userNameDisplay">—</span>
+      <span class="role-tag" id="userRoleDisplay">—</span>
+      <button class="btn-logout" onclick="logout()">Выйти</button>
     </div>
   </div>
 </nav>
 
+<!-- ── CONTRIBUTE MODAL ── -->
+<div class="modal-overlay" id="contributeModal">
+  <div class="modal">
+    <div class="modal-title"> Вклад в подарок</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px" id="modalGiftName"></p>
+    <div id="contributeModalAlert" class="alert"></div>
+    <div class="form-group">
+      <label>Сумма в тенге</label>
+      <input type="number" id="modalAmount" placeholder="5000" />
+    </div>
+    <div class="form-group">
+      <label>Валюта</label>
+      <select id="modalCurrency">
+        <option value="KZT">KZT — Тенге</option>
+        <option value="USD">USD — Доллар</option>
+        <option value="EUR">EUR — Евро</option>
+      </select>
+    </div>
+    <div class="flex mt-16">
+      <button class="btn btn-gold" onclick="submitContribute()">Скинуться</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ HOME ════════════════════ -->
 <div class="page active" id="page-home">
   <div class="container">
     <div class="hero">
-      <h1>Saukele</h1>
-      <p>Свадебный реестр подарков в казахских традициях</p>
-      <button class="btn btn-primary" onclick="showPage('auth')" style="background:white;color:#1F4E79;margin-top:0">Начать</button>
+      <span class="hero-ornament"></span>
+      <h1 class="hero-title">Saukele</h1>
+      <p class="hero-subtitle" id="heroSubtitle">Свадебный реестр подарков в казахских традициях</p>
+      <div class="hero-divider"><span>✦</span></div>
+      <button class="btn btn-gold" id="startBtn" onclick="showPage('auth')">Начать &rarr;</button>
     </div>
-    <div class="grid">
-      <div class="card"><h3>Pool подарки</h3><p class="text-muted">Гости могут вместе собрать сумму на один большой подарок.</p></div>
-      <div class="card"><h3>Родство</h3><p class="text-muted">Учитывайте tiers для ата-ана, туыс, жиен-жаран и друзей.</p></div>
-      <div class="card"><h3>Логистика</h3><p class="text-muted">Курьерская доставка для важных и хрупких подарков.</p></div>
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-title" id="feat1Title">Pool подарки</div>
+        <p class="feature-desc" id="feat1Desc">Все гости скидываются вместе на один дорогой подарок с отслеживанием вкладов</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title" id="feat2Title">Родство</div>
+        <p class="feature-desc" id="feat2Desc">Ата-ана, туыс, жиен-жаран — рекомендуемые суммы по казахским традициям</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title" id="feat3Title">Мультивалютность</div>
+        <p class="feature-desc" id="feat3Desc">Курс валюты фиксируется в момент вклада. USD, EUR, KZT</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title" id="feat4Title">Приватные подарки</div>
+        <p class="feature-desc" id="feat4Desc">Разграничение доступа по тирам родства — только близкие видят личные подарки</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title" id="feat5Title">Логистика</div>
+        <p class="feature-desc" id="feat5Desc">Курьерская доставка CHOCO и inDriver с поддержкой хрупких предметов</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title" id="feat6Title">Уведомления</div>
+        <p class="feature-desc" id="feat6Desc">Культурный тайминг уведомлений — "құттықтау" в подходящий момент</p>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ AUTH ════════════════════ -->
 <div class="page" id="page-auth">
   <div class="container">
-    <div class="card" style="max-width:440px;margin:0 auto">
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchAuthTab('login')" id="tab-login">Войти</button>
-        <button class="tab-btn" onclick="switchAuthTab('register')" id="tab-register">Регистрация</button>
-        <button class="tab-btn" onclick="switchAuthTab('forgot')" id="tab-forgot">Сброс пароля</button>
-      </div>
-      <div id="auth-login">
-        <h2>Вход</h2>
-        <div id="loginAlert" class="alert"></div>
-        <label>Email</label><input type="email" id="loginEmail" placeholder="email@example.com" />
-        <label>Пароль</label><input type="password" id="loginPassword" placeholder="Пароль" />
-        <button class="btn btn-primary" onclick="login()">Войти</button>
-      </div>
-      <div id="auth-register" style="display:none">
-        <h2>Регистрация</h2>
-        <div id="registerAlert" class="alert"></div>
-        <label>Имя</label><input type="text" id="regName" placeholder="Имя" />
-        <label>Email</label><input type="email" id="regEmail" placeholder="email@example.com" />
-        <label>Пароль</label><input type="password" id="regPassword" placeholder="Минимум 8 символов" />
-        <label>Роль</label>
-        <select id="regRole"><option value="GUEST">Гость</option><option value="COUPLE">Пара</option></select>
-        <button class="btn btn-primary" onclick="register()">Зарегистрироваться</button>
-        <p class="text-muted mt-8">После регистрации проверьте email для подтверждения аккаунта.</p>
-      </div>
-      <div id="auth-forgot" style="display:none">
-        <h2>Сброс пароля</h2>
-        <div id="forgotAlert" class="alert"></div>
-        <label>Email</label><input type="email" id="forgotEmail" placeholder="email@example.com" />
-        <button class="btn btn-primary" onclick="forgotPassword()">Отправить ссылку</button>
+    <div class="center-card">
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchAuthTab('login')" id="tab-login">Войти</button>
+          <button class="tab-btn" onclick="switchAuthTab('register')" id="tab-register">Регистрация</button>
+          <button class="tab-btn" onclick="switchAuthTab('forgot')" id="tab-forgot">Сброс пароля</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div id="auth-login">
+          <h2 class="card-title">Добро пожаловать</h2>
+          <div id="loginAlert" class="alert"></div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" />
+          </div>
+          <button class="btn btn-gold" id="loginSubmitBtn" style="width:100%;margin-top:8px" onclick="login()">Войти</button>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="auth-register" style="display:none">
+          <h2 class="card-title">Создать аккаунт</h2>
+          <div id="registerAlert" class="alert"></div>
+          <div class="form-group">
+            <label>Имя</label>
+            <input type="text" id="regName" placeholder="Асель Нурова" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Пароль (мин. 8 символов, буква + цифра)</label>
+            <input type="password" id="regPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Роль</label>
+            <select id="regRole">
+              <option value="GUEST">Гость</option>
+              <option value="COUPLE">Пара (жених/невеста)</option>
+            </select>
+          </div>
+          <button class="btn btn-gold" id="registerSubmitBtn" style="width:100%;margin-top:8px" onclick="register()">Зарегистрироваться</button>
+          <p class="text-muted mt-8" style="text-align:center">После регистрации проверьте email для подтверждения</p>
+        </div>
+
+        <!-- FORGOT -->
+        <div id="auth-forgot" style="display:none">
+          <h2 class="card-title">Сброс пароля</h2>
+          <div id="forgotAlert" class="alert"></div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="forgotEmail" placeholder="email@example.com" />
+          </div>
+          <button class="btn btn-gold" id="forgotSubmitBtn" style="width:100%;margin-top:8px" onclick="forgotPassword()">Отправить ссылку</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ VERIFY ════════════════════ -->
 <div class="page" id="page-verify">
   <div class="container">
-    <div class="card" style="max-width:520px;margin:0 auto">
-      <h2>Подтверждение email</h2>
-      <div id="verifyAlert" class="alert alert-info show">Проверяем ссылку...</div>
-      <button class="btn btn-primary" onclick="showPage('auth'); switchAuthTab('login')">Перейти ко входу</button>
+    <div class="center-card">
+      <div class="card" style="text-align:center">
+        <span class="big-icon" id="verifyIcon">...</span>
+        <h2 class="card-title" id="verifyTitle">Подтверждение email...</h2>
+        <p class="text-muted" id="verifyMsg">Пожалуйста подождите</p>
+        <div id="verifyAlert" class="alert" style="text-align:left"></div>
+        <button class="btn btn-gold mt-24" onclick="showPage('auth')" id="verifyGoLogin" style="display:none">Войти в систему</button>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ RESET PASSWORD ════════════════════ -->
 <div class="page" id="page-reset">
   <div class="container">
-    <div class="card" style="max-width:520px;margin:0 auto">
-      <h2>Новый пароль</h2>
-      <div id="resetAlert" class="alert"></div>
-      <label>Новый пароль</label><input type="password" id="resetPassword" />
-      <label>Повторите пароль</label><input type="password" id="resetPasswordConfirm" />
-      <button class="btn btn-primary" onclick="resetPassword()">Сохранить пароль</button>
+    <div class="center-card">
+      <div class="card">
+        <span class="big-icon"></span>
+        <h2 class="card-title">Новый пароль</h2>
+        <div id="resetAlert" class="alert"></div>
+        <div class="form-group">
+          <label>Новый пароль</label>
+          <input type="password" id="resetPassword" placeholder="••••••••" />
+        </div>
+        <div class="form-group">
+          <label>Подтвердите пароль</label>
+          <input type="password" id="resetPasswordConfirm" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="resetPassword()">Сохранить пароль</button>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ PROFILE ════════════════════ -->
 <div class="page" id="page-profile">
   <div class="container">
-    <div class="card">
-      <h2>Профиль</h2>
-      <div id="profileAlert" class="alert"></div>
-      <div class="two-col">
-        <div><label>Имя</label><input type="text" id="profileName" /></div>
-        <div><label>Email</label><input type="email" id="profileEmail" disabled /></div>
-        <div><label>Роль</label><input type="text" id="profileRole" disabled /></div>
-        <div><label>Город</label><input type="text" id="profileCity" /></div>
-        <div><label>Телефон</label><input type="text" id="profilePhone" /></div>
-        <div><label>Instagram</label><input type="text" id="profileInstagram" /></div>
+    <div class="section-title" id="profilePageTitle" data-t="profileTitle">Личный кабинет</div>
+    <p class="section-subtitle" id="profilePageSubtitle">Управляйте своим профилем</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="profile-header">
+          <div class="profile-avatar-lg" id="profileAvatarLg">А</div>
+          <div class="profile-info">
+            <h2 id="profileName">—</h2>
+            <p id="profileEmail">—</p>
+            <span class="badge badge-single" id="profileRole">—</span>
+          </div>
+        </div>
+        <div class="divider-gold"></div>
+        <div id="profileAlert" class="alert"></div>
+        <div class="form-group">
+          <label>Имя</label>
+          <input type="text" id="profileNameInput" />
+        </div>
+        <div class="form-group">
+          <label>О себе</label>
+          <textarea id="profileBio" placeholder="Расскажите о себе..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Телефон</label>
+          <input type="text" id="profilePhone" placeholder="+7 777 000 00 00" />
+        </div>
+        <div class="form-group">
+          <label>Город</label>
+          <input type="text" id="profileCity" placeholder="Алматы" />
+        </div>
+        <div class="form-group">
+          <label>Instagram</label>
+          <input type="text" id="profileInstagram" placeholder="@username" />
+        </div>
+        <button class="btn btn-gold mt-16" onclick="saveProfile()">Сохранить профиль</button>
       </div>
-      <label>Bio</label><textarea id="profileBio"></textarea>
-      <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
+
+      <div>
+        <div class="card">
+          <div class="card-title">Безопасность</div>
+          <div id="securityAlert" class="alert"></div>
+          <p class="text-muted">Запросить сброс пароля на email:</p>
+          <button class="btn btn-outline mt-16" onclick="requestPasswordReset()">Изменить пароль</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ REGISTRY ════════════════════ -->
 <div class="page" id="page-registry">
   <div class="container">
+    <div class="section-title" id="registriesPageTitle" data-t="registriesTitle">Мои реестры</div>
+    <p class="section-subtitle" id="registriesPageSubtitle">Управляйте свадебными реестрами подарков</p>
+
     <div class="card">
-      <h2>Мои реестры</h2>
+      <div class="card-title">Создать реестр</div>
       <div id="registryAlert" class="alert"></div>
-      <label>Название свадьбы</label><input type="text" id="regTitle" placeholder="Свадьба Асель и Данияра" />
-      <label>Дата свадьбы</label><input type="date" id="regEventDate" />
-      <label>Описание</label><textarea id="regDesc" placeholder="Описание"></textarea>
-      <button class="btn btn-primary" onclick="createRegistry()">Создать реестр</button>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" id="regTitle" placeholder="Свадьба Асель и Данияра" />
+        </div>
+        <div class="form-group">
+          <label>Дата свадьбы</label>
+          <input type="date" id="regEventDate" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Описание</label>
+        <textarea id="regDesc" placeholder="Расскажите гостям о вашей свадьбе..."></textarea>
+      </div>
+      <button class="btn btn-gold" onclick="createRegistry()">Создать реестр</button>
     </div>
+
     <div id="registryList"></div>
+
+    <div class="card" id="invitesSection" style="display:none">
+      <div class="card-title">Приглашения гостей</div>
+      <div id="inviteAlert" class="alert"></div>
+      <div class="flex">
+        <input type="email" id="inviteEmail" placeholder="email гостя" style="flex:1" />
+        <button class="btn btn-gold btn-sm" onclick="inviteGuest()" style="margin-top:0">Пригласить</button>
+      </div>
+      <div id="invitesList" class="mt-16"></div>
+    </div>
   </div>
 </div>
 
+<!-- ════════════════════ GIFTS ════════════════════ -->
 <div class="page" id="page-gifts">
   <div class="container">
-    <div id="giftsRegistryInfo" class="card" style="display:none">
-      <div class="flex">
+    <div id="giftsHeader" style="display:none;margin-bottom:24px">
+      <div class="flex" style="align-items:flex-start;gap:16px">
         <div style="flex:1">
-          <h2 id="giftsRegistryTitle">Реестр</h2>
-          <p class="text-muted" id="giftsRegistryStatus"></p>
-          <div id="giftsShareBox" class="share-box" style="display:none"></div>
+          <div class="section-title" id="giftsRegistryTitle">Реестр</div>
+          <div class="flex mt-8">
+            <span class="badge" id="giftsStatusBadge">DRAFT</span>
+            <span class="text-muted">·</span>
+            <span class="text-muted" id="giftsGiftCount">0 подарков</span>
+          </div>
         </div>
-        <button class="btn btn-success btn-sm" onclick="publishRegistry()">Опубликовать</button>
-        <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Скопировать ссылку</button>
+        <div class="flex">
+          <button class="btn btn-success btn-sm" id="giftsPagePublishBtn" onclick="publishRegistry()">✓ Опубликовать</button>
+          <button class="btn btn-outline btn-sm" id="giftsPageCopyBtn" onclick="copyShareLink()">Ссылка</button>
+        </div>
       </div>
+      <div class="share-token-box mt-16" id="shareTokenBox" style="display:none">
+        <code id="shareTokenCode"></code>
+        <button class="btn btn-xs btn-ghost" onclick="copyShareLink()">Копировать</button>
+      </div>
+      <div id="giftAlert" class="alert" style="margin-top:12px"></div>
     </div>
-    <div class="card" id="addGiftForm">
-      <h2>Добавить подарок</h2>
-      <div id="giftAlert" class="alert"></div>
-      <label>Название</label><input type="text" id="giftTitle" placeholder="Название подарка" />
-      <label>Цена (KZT)</label><input type="number" id="giftPrice" placeholder="50000" />
-      <label>Тип</label><select id="giftType"><option value="SINGLE">SINGLE - один покупает</option><option value="POOL">POOL - все скидываются</option></select>
-      <label>Категория</label><input type="text" id="giftCategory" placeholder="Home, Travel, Tradition" />
-      <label><input type="checkbox" id="giftPrivate" /> Приватный</label>
-      <button class="btn btn-primary" onclick="addGift()">Добавить подарок</button>
-    </div>
-    <div id="giftList" class="grid"></div>
-  </div>
-</div>
 
-<div class="page" id="page-logistics">
-  <div class="container">
     <div class="card">
-      <h2>Логистика</h2>
-      <div id="logisticsAlert" class="alert"></div>
-      <p class="text-muted" id="logisticsRegistryHint">Выберите реестр в разделе "Мои реестры".</p>
-      <div class="two-col">
-        <div><label>Подарок</label><select id="logisticsGift"></select></div>
-        <div><label>Провайдер</label><select id="logisticsProvider"><option value="CHOCO">CHOCO</option><option value="INDRIVER">INDRIVER</option></select></div>
+      <div class="card-title">Добавить подарок</div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" id="giftTitle" placeholder="KitchenAid Mixer" />
+        </div>
+        <div class="form-group">
+          <label>Цена (тенге)</label>
+          <input type="number" id="giftPrice" placeholder="120000" />
+        </div>
+        <div class="form-group">
+          <label>Тип подарка</label>
+          <select id="giftType">
+            <option value="SINGLE">SINGLE — один покупает</option>
+            <option value="POOL">POOL — все скидываются</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Категория</label>
+          <input type="text" id="giftCategory" placeholder="Home, Travel, Tradition..." />
+        </div>
       </div>
-      <label>Адрес забора</label><input type="text" id="pickupAddress" />
-      <label>Адрес доставки</label><input type="text" id="deliveryAddress" />
+      <label class="checkbox-row">
+        <input type="checkbox" id="giftPrivate" />
+        <span>Приватный (только родственники tier 1-2)</span>
+      </label>
+      <button class="btn btn-gold mt-16" onclick="addGift()">Добавить подарок</button>
+    </div>
+
+    <div class="card" id="giftImagesCard" style="display:none">
+      <div class="card-title">Фото подарка</div>
+      <div id="imageAlert" class="alert"></div>
+      <div class="flex">
+        <select id="imageGiftSelect" style="max-width:220px">
+          <option value="">Выберите подарок...</option>
+        </select>
+        <input type="text" id="imageUrl" placeholder="URL фотографии" style="flex:1" />
+        <label class="checkbox-row" style="white-space:nowrap">
+          <input type="checkbox" id="imagePrimary" />
+          <span>Главное фото</span>
+        </label>
+        <button class="btn btn-gold btn-sm" onclick="addGiftImage()" style="margin-top:0">Добавить</button>
+      </div>
       <div class="flex mt-8">
-        <label><input type="checkbox" id="isFragile" /> Хрупкий</label>
-        <label><input type="checkbox" id="whiteGlove" /> White glove</label>
+        <button class="btn btn-outline btn-sm" onclick="loadGiftImages()" style="margin-top:0">Показать фото</button>
       </div>
-      <button class="btn btn-primary" onclick="dispatchCourier()">Вызвать курьера</button>
+      <div id="giftImagesList" class="mt-16"></div>
     </div>
-    <div class="card">
-      <div class="flex"><h2 style="flex:1">Заказы доставки</h2><button class="btn btn-muted btn-sm" onclick="loadLogisticsOrders()">Обновить</button></div>
-      <div id="logisticsOrders"></div>
-    </div>
+
+    <div id="giftList" class="grid-auto"></div>
   </div>
 </div>
 
-<div class="page" id="page-contributions">
-  <div class="container">
-    <div class="card">
-      <div class="flex"><h2 style="flex:1">Вклады</h2><button class="btn btn-muted btn-sm" onclick="loadContributionsHistory()">Обновить</button></div>
-      <div id="contributionsAlert" class="alert"></div>
-      <label>Payment Ref для webhook test</label><input type="text" id="webhookPaymentRef" placeholder="paymentRef" />
-      <button class="btn btn-primary" onclick="testPaymentWebhook()">Webhook SUCCESS</button>
-    </div>
-    <div id="contributionsList"></div>
-  </div>
-</div>
-
+<!-- ════════════════════ GUEST VIEW ════════════════════ -->
 <div class="page" id="page-guest">
   <div class="container">
+    <div class="section-title" id="guestPageTitle" data-t="guestTitle">Реестр по ссылке</div>
+    <p class="section-subtitle" id="guestPageSubtitle">Введите share token чтобы просмотреть реестр</p>
+
     <div class="card">
-      <h2>Открыть реестр по ссылке</h2>
       <div id="guestAlert" class="alert"></div>
-      <label>Share Token</label>
-      <div class="flex"><input type="text" id="shareTokenInput" placeholder="Вставьте share token" style="flex:1" /><button class="btn btn-primary btn-sm" onclick="loadPublicRegistry()">Открыть</button></div>
+      <div class="flex">
+        <input type="text" id="shareTokenInput" placeholder="Вставьте share token здесь..." style="flex:1" />
+        <button class="btn btn-gold btn-sm" onclick="loadPublicRegistry()" style="margin-top:0">Открыть</button>
+      </div>
+    </div>
+    <div class="card" id="myInvitesCard">
+      <div class="card-title">Мои приглашения</div>
+      <button class="btn btn-outline btn-sm" onclick="loadMyInvites()">Загрузить</button>
+      <div id="myInvitesList" class="mt-16"></div>
     </div>
     <div id="publicRegistryView"></div>
   </div>
 </div>
 
+<!-- ════════════════════ KINSHIP ════════════════════ -->
 <div class="page" id="page-kinship">
   <div class="container">
-    <div class="card">
-      <h2>Родство</h2>
-      <div id="kinshipAlert" class="alert"></div>
-      <label>ID пары</label><input type="number" id="kinshipCoupleId" placeholder="coupleId" />
-      <label>Тип родства</label>
-      <select id="kinshipType">
-        <option value="ATA_ANA">Ата-ана - 100 000 KZT</option>
-        <option value="TUYS">Туыс - 50 000 KZT</option>
-        <option value="ZHIEN_ZHARAN">Жиен-жаран - 30 000 KZT</option>
-        <option value="DOSY">Досы - 15 000 KZT</option>
-      </select>
-      <button class="btn btn-primary" onclick="setKinship()">Указать родство</button>
-      <hr class="divider" />
-      <h2>Дерево родства</h2>
-      <label>ID пары</label>
-      <div class="flex"><input type="number" id="familyTreeCoupleId" placeholder="coupleId" style="flex:1" /><button class="btn btn-primary btn-sm" onclick="loadFamilyTree()">Загрузить</button></div>
-      <div id="familyTreeResult"></div>
+    <div class="section-title" id="kinshipPageTitle" data-t="kinshipTitle">Родство</div>
+    <p class="section-subtitle" id="kinshipPageSubtitle">Укажите ваше родство с парой для рекомендации суммы</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Указать родство</div>
+        <div id="kinshipAlert" class="alert"></div>
+        <div class="form-group">
+          <label>ID пары</label>
+          <select id="kinshipCoupleSelect">
+            <option value="">Выберите пару...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Тип родства</label>
+          <select id="kinshipType">
+            <option value="ATA_ANA">Ата-ана (родители)</option>
+            <option value="TUYS">Туыс (близкие родственники)</option>
+            <option value="ZHIEN_ZHARAN">Жиен-жаран (дальние родственники)</option>
+            <option value="DOSY">Досы (друзья)</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="setKinship()">Установить родство</button>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-title">Тиры родства</div>
+          <div class="kinship-tier">
+            <span class="kinship-tier-icon"></span>
+            <div class="kinship-tier-info">
+              <strong>Ата-ана</strong>
+              <span>Родители — Tier 1</span>
+            </div>
+            <span class="kinship-amount">100 000 ₸</span>
+          </div>
+          <div class="kinship-tier">
+            <span class="kinship-tier-icon"></span>
+            <div class="kinship-tier-info">
+              <strong>Туыс</strong>
+              <span>Братья/сёстры — Tier 2</span>
+            </div>
+            <span class="kinship-amount">50 000 ₸</span>
+          </div>
+          <div class="kinship-tier">
+            <span class="kinship-tier-icon"></span>
+            <div class="kinship-tier-info">
+              <strong>Жиен-жаран</strong>
+              <span>Дальние родственники — Tier 3</span>
+            </div>
+            <span class="kinship-amount">30 000 ₸</span>
+          </div>
+          <div class="kinship-tier">
+            <span class="kinship-tier-icon"></span>
+            <div class="kinship-tier-info">
+              <strong>Досы</strong>
+              <span>Друзья — Tier 4</span>
+            </div>
+            <span class="kinship-amount">15 000 ₸</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-24">
+      <div class="card-title">Дерево родства</div>
+      <div class="flex">
+        <button class="btn btn-outline btn-sm" onclick="loadFamilyTree()" style="margin-top:0">Загрузить дерево</button>
+      </div>
+      <div id="familyTreeResult" class="mt-16"></div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ LOGISTICS ════════════════════ -->
+<div class="page" id="page-logistics">
+  <div class="container">
+    <div class="section-title" id="logisticsPageTitle" data-t="logisticsTitle">Логистика</div>
+    <p class="section-subtitle">Курьерская доставка подарков</p>
+
+    <div class="card">
+      <div class="card-title">Создать заказ</div>
+      <div id="logisticsAlert" class="alert"></div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>ID подарка</label>
+          <select id="logGiftSelect">
+            <option value="">Выберите подарок...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Провайдер</label>
+          <select id="logProvider">
+            <option value="CHOCO">CHOCO (поддерживает White Glove)</option>
+            <option value="INDRIVER">inDriver (быстрее, дешевле)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Адрес получения</label>
+          <input type="text" id="logPickup" placeholder="ул. Абая 1, Алматы" />
+        </div>
+        <div class="form-group">
+          <label>Адрес доставки</label>
+          <input type="text" id="logDelivery" placeholder="ул. Достык 5, Алматы" />
+        </div>
+      </div>
+      <div class="flex mt-8">
+        <label class="checkbox-row">
+          <input type="checkbox" id="logFragile" onchange="checkFragile()" />
+          <span>(Fragile) Хрупкий предмет</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="logWhiteGlove" />
+          <span>(White Glove) Бережная доставка</span>
+        </label>
+      </div>
+      <button class="btn btn-gold mt-16" onclick="createLogisticsOrder()">Создать заказ</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Заказы реестра</div>
+      <div class="flex" style="margin-bottom:16px">
+        <select id="logRegistrySelect" style="max-width:220px">
+          <option value="">Выберите реестр...</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadLogisticsOrders()" style="margin-top:0">Загрузить</button>
+      </div>
+      <div id="logisticsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ NOTIFICATIONS ════════════════════ -->
 <div class="page" id="page-notifications">
   <div class="container">
-    <div class="card">
-      <div class="flex">
-        <h2 style="flex:1">Уведомления <span id="unreadBadge" style="background:#c0392b;color:white;border-radius:12px;padding:2px 8px;font-size:12px;display:none">0</span></h2>
-        <button class="btn btn-primary btn-sm" onclick="markAllRead()">Прочитать все</button>
-        <button class="btn btn-muted btn-sm" onclick="loadNotifications()">Обновить</button>
+    <div class="flex" style="margin-bottom:24px;align-items:flex-end">
+      <div style="flex:1">
+        <div class="section-title"><span id="notificationsPageTitle" data-t="notificationsTitle">Уведомления</span> <span id="unreadBadge" style="display:none;background:var(--error);color:white;border-radius:12px;padding:2px 10px;font-size:16px;vertical-align:middle"></span></div>
       </div>
+      <div class="flex">
+        <button class="btn btn-outline btn-sm" onclick="markAllRead()">Прочитать все</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadNotifications()">↻</button>
+      </div>
+    </div>
+
+    <div class="card">
       <div id="notificationList"></div>
     </div>
+
     <div class="card">
-      <h2>Этикет уведомлений</h2>
-      <label>Registry ID</label><input type="number" id="etiquetteRegistryId" placeholder="необязательно" />
-      <button class="btn btn-primary" onclick="checkEtiquette()">Проверить</button>
+      <div class="card-title">Etiquette — Культурный тайминг</div>
+      <p class="text-muted">Проверить можно ли сейчас отправлять уведомления (период құттықтау)</p>
+      <div class="flex mt-16">
+        <input type="number" id="etiquetteRegistryId" placeholder="ID реестра (необязательно)" style="max-width:240px" />
+        <button class="btn btn-outline btn-sm" onclick="checkEtiquette()" style="margin-top:0">Проверить</button>
+      </div>
       <div id="etiquetteResult"></div>
     </div>
   </div>
 </div>
 
+<!-- ════════════════════ ADMIN ════════════════════ -->
 <div class="page" id="page-admin">
   <div class="container">
-    <div class="card">
-      <h2>Админ</h2>
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchAdminTab('users')" id="atab-users">Пользователи</button>
-        <button class="tab-btn" onclick="switchAdminTab('registries')" id="atab-registries">Реестры</button>
-        <button class="tab-btn" onclick="switchAdminTab('contributions')" id="atab-contributions">Вклады</button>
+    <div class="section-title" id="adminPageTitle" data-t="adminTitle">Панель администратора</div>
+    <p class="section-subtitle" id="adminPageSubtitle">Управление пользователями, реестрами и вкладами</p>
+
+    <div class="tabs" style="margin-bottom:24px">
+      <button class="tab-btn active" onclick="switchAdminTab('users')" id="atab-users">Пользователи</button>
+      <button class="tab-btn" onclick="switchAdminTab('registries')" id="atab-registries">Реестры</button>
+      <button class="tab-btn" onclick="switchAdminTab('contributions')" id="atab-contributions">Вклады</button>
+    </div>
+
+    <!-- USERS -->
+    <div id="admin-users">
+      <div class="card">
+        <div class="flex" style="margin-bottom:16px">
+          <div class="card-title" style="margin:0;flex:1">Все пользователи</div>
+          <button class="btn btn-outline btn-sm" onclick="loadAdminUsers()">Обновить</button>
+        </div>
+        <div class="table-wrap">
+          <div id="adminUsersList"><div class="empty-state"><span class="empty-icon"></span><p>Нажмите "Обновить"</p></div></div>
+        </div>
       </div>
-      <div id="admin-users"><button class="btn btn-primary btn-sm" onclick="loadAdminUsers()">Загрузить</button><div id="adminUsersList" class="mt-8"></div></div>
-      <div id="admin-registries" style="display:none"><button class="btn btn-primary btn-sm" onclick="loadAdminRegistries()">Загрузить</button><div id="adminRegistriesList" class="mt-8"></div></div>
-      <div id="admin-contributions" style="display:none"><button class="btn btn-primary btn-sm" onclick="loadAdminContributions()">Загрузить</button><div id="adminContributionsList" class="mt-8"></div></div>
+    </div>
+
+    <!-- REGISTRIES -->
+    <div id="admin-registries" style="display:none">
+      <div class="card">
+        <div class="flex" style="margin-bottom:16px">
+          <div class="card-title" style="margin:0;flex:1">Все реестры</div>
+          <button class="btn btn-outline btn-sm" onclick="loadAdminRegistries()">Обновить</button>
+        </div>
+        <div class="table-wrap">
+          <div id="adminRegistriesList"><div class="empty-state"><span class="empty-icon"></span><p>Нажмите "Обновить"</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTRIBUTIONS -->
+    <div id="admin-contributions" style="display:none">
+      <div class="card">
+        <div class="flex" style="margin-bottom:16px">
+          <div class="card-title" style="margin:0;flex:1">Все вклады</div>
+          <button class="btn btn-outline btn-sm" onclick="loadAdminContributions()">Обновить</button>
+        </div>
+        <div id="adminContribAlert" class="alert"></div>
+        <div class="table-wrap">
+          <div id="adminContributionsList"><div class="empty-state"><span class="empty-icon"></span><p>Нажмите "Обновить"</p></div></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
+  // ── CONFIG ──────────────────────────────────────────────────
   const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000/api'
-    : '/api';
+    : `${window.location.protocol}//${window.location.hostname}:3000/api`;
 
+  let accessToken = localStorage.getItem('accessToken') || null;
+  let refreshTokenVal = localStorage.getItem('refreshToken') || null;
   let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-  let currentRegistryId = Number(localStorage.getItem('currentRegistryId')) || null;
-  let currentRegistryShareToken = localStorage.getItem('currentRegistryShareToken') || null;
-  let currentRegistryTitle = localStorage.getItem('currentRegistryTitle') || '';
-  let currentRegistryStatus = localStorage.getItem('currentRegistryStatus') || '';
-  let currentRegistryGifts = [];
-  let resetToken = '';
+  let currentRegistryId = null;
+  let currentRegistryShareToken = null;
+  let modalGiftId = null;
 
+  // ── HELPERS ─────────────────────────────────────────────────
   async function api(method, path, body, auth = true) {
     const headers = { 'Content-Type': 'application/json' };
-    const token = localStorage.getItem('accessToken');
-    if (auth && token) headers.Authorization = `Bearer ${token}`;
+    if (auth && accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
     const res = await fetch(`${API}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined
+      method, headers,
+      body: body ? JSON.stringify(body) : undefined,
     });
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
-    if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw { status: res.status, message: data.error || 'Ошибка запроса' };
     return data;
   }
 
@@ -373,184 +1226,243 @@
     if (!el) return;
     el.className = `alert alert-${type} show`;
     el.textContent = msg;
+    setTimeout(() => el.classList.remove('show'), 7000);
   }
 
   function formatKzt(n) {
-    return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(Number(n || 0));
+    return Number(n).toLocaleString('ru-RU') + ' ₸';
   }
 
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  function getShareLink() {
-    return currentRegistryShareToken ? `${window.location.origin}${window.location.pathname}?share=${currentRegistryShareToken}` : '';
-  }
-
+  // ── NAV / PAGES ─────────────────────────────────────────────
   function showPage(name) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${name}`)?.classList.add('active');
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    document.getElementById(`nav-${name}`)?.classList.add('active');
-    if (name === 'registry') loadRegistries();
-    if (name === 'profile') loadProfile();
-    if (name === 'gifts') loadGifts();
-    if (name === 'logistics') { loadLogisticsGiftOptions(); loadLogisticsOrders(); }
-    if (name === 'contributions') loadContributionsHistory();
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const page = document.getElementById(`page-${name}`);
+    if (page) page.classList.add('active');
+    const btn = document.getElementById(`nav-${name}`);
+    if (btn) btn.classList.add('active');
+
+    if (name === 'registry' && currentUser?.role === 'COUPLE') loadRegistries();
     if (name === 'notifications') loadNotifications();
+    if (name === 'admin') loadAdminUsers();
+    if (name === 'profile') loadProfile();
+    if (name === 'kinship') loadCouples();
+    if (name === 'logistics') populateLogisticsSelects();
+    if (name === 'gifts') {
+      if (!currentRegistryId) {
+        showPage('registry');
+        showAlert('registryAlert', 'Сначала выберите реестр чтобы управлять подарками', 'info');
+        return;
+      }
+      loadGifts();
+    }
   }
 
   function updateNav() {
-    const nav = document.getElementById('navLinks');
-    const items = [{ key: 'home', label: 'Главная' }];
-    if (!currentUser) items.push({ key: 'auth', label: 'Войти' }, { key: 'guest', label: 'Гостевой доступ' });
+    const links = document.getElementById('navLinks');
+    const userInfo = document.getElementById('userInfo');
+
     if (currentUser) {
-      items.push({ key: 'profile', label: 'Профиль' }, { key: 'guest', label: 'Гость' }, { key: 'kinship', label: 'Родство' }, { key: 'notifications', label: 'Уведомления' });
-      if (currentUser.role === 'COUPLE') items.push({ key: 'registry', label: 'Реестры' }, { key: 'gifts', label: 'Подарки' }, { key: 'logistics', label: 'Логистика' }, { key: 'contributions', label: 'Вклады' });
-      if (currentUser.role === 'ADMIN') items.push({ key: 'admin', label: 'Админ' });
-    }
-    nav.innerHTML = items.map(i => `<button onclick="showPage('${i.key}')" id="nav-${i.key}">${i.label}</button>`).join('');
-    document.getElementById('userInfo').style.display = currentUser ? '' : 'none';
-    if (currentUser) {
-      document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.email || '-';
-      document.getElementById('userRoleDisplay').textContent = currentUser.role || '-';
+      const initials = currentUser.name ? currentUser.name[0].toUpperCase() : '...';
+      document.getElementById('userNameDisplay').textContent = currentUser.name;
+      document.getElementById('userRoleDisplay').textContent = currentUser.role;
+      document.getElementById('userAvatarNav').textContent = initials;
+      userInfo.style.display = 'flex';
+
+      let html = `<button class="nav-btn" onclick="showPage('home')" id="nav-home">${t('home')}</button>`;
+      html += `<button class="nav-btn" onclick="showPage('profile')" id="nav-profile">${t('profile')}</button>`;
+      if (currentUser.role === 'COUPLE') {
+        html += `<button class="nav-btn" onclick="showPage('registry')" id="nav-registry">${t('registries')}</button>`;
+        html += `<button class="nav-btn" onclick="showPage('gifts')" id="nav-gifts">${t('gifts')}</button>`;
+        html += `<button class="nav-btn" onclick="showPage('logistics')" id="nav-logistics">${t('logistics')}</button>`;
+      }
+      if (currentUser.role === 'GUEST') {
+        html += `<button class="nav-btn" onclick="showPage('guest')" id="nav-guest">${t('guestView')}</button>`;
+        html += `<button class="nav-btn" onclick="showPage('kinship')" id="nav-kinship">${t('kinship')}</button>`;
+      }
+      html += `<button class="nav-btn" onclick="showPage('notifications')" id="nav-notifications">${t('notifications')}</button>`;
+      if (currentUser.role === 'ADMIN') {
+        html += `<button class="nav-btn" onclick="showPage('admin')" id="nav-admin">${t('admin')}</button>`;
+      }
+      links.innerHTML = html;
+      document.querySelector('.btn-logout').textContent = t('logout');
+    } else {
+      userInfo.style.display = 'none';
+      links.innerHTML = `
+        <button class="nav-btn active" onclick="showPage('home')" id="nav-home">${t('home')}</button>
+        <button class="nav-btn" onclick="showPage('auth')" id="nav-auth">${t('login')}</button>
+        <button class="nav-btn" onclick="showPage('guest')" id="nav-guest">${t('guestView')}</button>
+      `;
     }
   }
 
+  // ── AUTH TABS ────────────────────────────────────────────────
   function switchAuthTab(tab) {
-    ['login', 'register', 'forgot'].forEach(t => {
+    ['login','register','forgot'].forEach(t => {
       document.getElementById(`auth-${t}`).style.display = t === tab ? '' : 'none';
       document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
     });
   }
 
+  // ── REGISTER ────────────────────────────────────────────────
   async function register() {
     try {
       await api('POST', '/auth/register', {
         name: document.getElementById('regName').value,
         email: document.getElementById('regEmail').value,
         password: document.getElementById('regPassword').value,
-        role: document.getElementById('regRole').value
+        role: document.getElementById('regRole').value,
       }, false);
-      showAlert('registerAlert', 'Регистрация создана. Проверьте email для подтверждения.', 'success');
+      showAlert('registerAlert', 'Аккаунт создан! Проверьте email для подтверждения.', 'success');
     } catch (e) { showAlert('registerAlert', e.message); }
   }
 
+  // ── LOGIN ────────────────────────────────────────────────────
   async function login() {
     try {
       const data = await api('POST', '/auth/login', {
         email: document.getElementById('loginEmail').value,
-        password: document.getElementById('loginPassword').value
+        password: document.getElementById('loginPassword').value,
       }, false);
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      accessToken = data.accessToken;
+      refreshTokenVal = data.refreshToken;
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshTokenVal);
+
       const me = await api('GET', '/users/me');
       currentUser = me;
       localStorage.setItem('currentUser', JSON.stringify(me));
+
       updateNav();
-      showPage(me.role === 'COUPLE' ? 'registry' : me.role === 'ADMIN' ? 'admin' : 'guest');
+      if (currentUser.role === 'COUPLE') showPage('registry');
+      else if (currentUser.role === 'ADMIN') showPage('admin');
+      else showPage('guest');
     } catch (e) { showAlert('loginAlert', e.message); }
   }
 
+  // ── LOGOUT ───────────────────────────────────────────────────
   async function logout() {
-    try {
-      const refreshTokenVal = localStorage.getItem('refreshToken');
-      if (refreshTokenVal) await api('POST', '/auth/logout', { refreshToken: refreshTokenVal });
-    } catch {}
+    try { await api('POST', '/auth/logout', { refreshToken: refreshTokenVal }); } catch {}
+    accessToken = null; refreshTokenVal = null; currentUser = null;
     localStorage.clear();
-    currentUser = null;
-    currentRegistryId = null;
-    currentRegistryShareToken = null;
     updateNav();
     showPage('home');
   }
 
+  // ── FORGOT PASSWORD ──────────────────────────────────────────
   async function forgotPassword() {
     try {
-      await api('POST', '/auth/forgot-password', { email: document.getElementById('forgotEmail').value }, false);
-      showAlert('forgotAlert', 'Ссылка отправлена на email.', 'success');
+      await api('POST', '/auth/forgot-password', {
+        email: document.getElementById('forgotEmail').value,
+      }, false);
+      showAlert('forgotAlert', 'Ссылка для сброса пароля отправлена на email', 'success');
     } catch (e) { showAlert('forgotAlert', e.message); }
   }
 
-  async function loadProfile() {
-    if (!currentUser) return;
+  // ── RESET PASSWORD ───────────────────────────────────────────
+  async function resetPassword() {
+    const token = new URLSearchParams(window.location.search).get('reset');
+    const pass = document.getElementById('resetPassword').value;
+    const confirm = document.getElementById('resetPasswordConfirm').value;
+    if (pass !== confirm) { showAlert('resetAlert', 'Пароли не совпадают'); return; }
     try {
-      const user = await api('GET', '/users/me');
-      currentUser = user;
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      document.getElementById('profileName').value = user.name || '';
-      document.getElementById('profileEmail').value = user.email || '';
-      document.getElementById('profileRole').value = user.role || '';
-      document.getElementById('profileBio').value = user.profile?.bio || '';
-      document.getElementById('profilePhone').value = user.profile?.phoneNumber || '';
-      document.getElementById('profileCity').value = user.profile?.city || '';
-      document.getElementById('profileInstagram').value = user.profile?.instagramHandle || '';
-      updateNav();
-    } catch (e) { showAlert('profileAlert', e.message); }
+      await api('POST', '/auth/reset-password', { token, newPassword: pass }, false);
+      showAlert('resetAlert', 'Пароль изменён! Теперь войдите в систему.', 'success');
+      setTimeout(() => showPage('auth'), 2000);
+    } catch (e) { showAlert('resetAlert', e.message); }
+  }
+
+  // ── VERIFY EMAIL ─────────────────────────────────────────────
+  async function verifyEmailAuto(token) {
+    try {
+      await api('GET', `/auth/verify-email?token=${token}`, null, false);
+      document.getElementById('verifyIcon').textContent = 'Success';
+      document.getElementById('verifyTitle').textContent = 'Email подтверждён!';
+      document.getElementById('verifyMsg').textContent = 'Теперь вы можете войти в систему';
+      document.getElementById('verifyGoLogin').style.display = 'inline-flex';
+    } catch (e) {
+      document.getElementById('verifyIcon').textContent = 'Error';
+      document.getElementById('verifyTitle').textContent = 'Ошибка подтверждения';
+      showAlert('verifyAlert', e.message);
+    }
+  }
+
+  // ── PROFILE ──────────────────────────────────────────────────
+  async function loadProfile() {
+    try {
+      const me = await api('GET', '/users/me');
+      currentUser = me;
+      localStorage.setItem('currentUser', JSON.stringify(me));
+      const initials = me.name ? me.name[0].toUpperCase() : '...';
+      document.getElementById('profileAvatarLg').textContent = initials;
+      document.getElementById('profileName').textContent = me.name;
+      document.getElementById('profileEmail').textContent = me.email;
+      document.getElementById('profileRole').textContent = me.role;
+      document.getElementById('profileNameInput').value = me.name || '';
+      if (me.profile) {
+        document.getElementById('profileBio').value = me.profile.bio || '';
+        document.getElementById('profilePhone').value = me.profile.phoneNumber || '';
+        document.getElementById('profileCity').value = me.profile.city || '';
+        document.getElementById('profileInstagram').value = me.profile.instagramHandle || '';
+      }
+    } catch (e) { console.error(e); }
   }
 
   async function saveProfile() {
     try {
-      const user = await api('PUT', '/users/me', {
-        name: document.getElementById('profileName').value,
+      await api('PUT', '/users/me', {
+        name: document.getElementById('profileNameInput').value,
         bio: document.getElementById('profileBio').value,
         phoneNumber: document.getElementById('profilePhone').value,
         city: document.getElementById('profileCity').value,
-        instagramHandle: document.getElementById('profileInstagram').value
+        instagramHandle: document.getElementById('profileInstagram').value,
       });
-      currentUser = { ...currentUser, ...user };
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      updateNav();
-      showAlert('profileAlert', 'Профиль обновлен.', 'success');
+      showAlert('profileAlert', 'Профиль обновлён!', 'success');
+      loadProfile();
     } catch (e) { showAlert('profileAlert', e.message); }
   }
 
-  async function verifyEmailFromUrl(token) {
-    showPage('verify');
+  async function requestPasswordReset() {
     try {
-      await api('GET', `/auth/verify-email?token=${encodeURIComponent(token)}`, null, false);
-      showAlert('verifyAlert', 'Email подтверждён! Теперь войдите в систему', 'success');
-    } catch (e) { showAlert('verifyAlert', e.message); }
+      await api('POST', '/auth/forgot-password', { email: currentUser.email });
+      showAlert('securityAlert', 'Письмо со сбросом пароля отправлено на ' + currentUser.email, 'success');
+    } catch (e) { showAlert('securityAlert', e.message); }
   }
 
-  async function resetPassword() {
-    const pass = document.getElementById('resetPassword').value;
-    const confirm = document.getElementById('resetPasswordConfirm').value;
-    if (pass !== confirm) return showAlert('resetAlert', 'Пароли не совпадают');
-    try {
-      await api('POST', '/auth/reset-password', { token: resetToken, newPassword: pass }, false);
-      showAlert('resetAlert', 'Пароль обновлен. Теперь войдите в систему.', 'success');
-    } catch (e) { showAlert('resetAlert', e.message); }
-  }
-
+  // ── REGISTRY ─────────────────────────────────────────────────
   async function createRegistry() {
     try {
       await api('POST', '/registries', {
         title: document.getElementById('regTitle').value,
         eventDate: document.getElementById('regEventDate').value,
-        description: document.getElementById('regDesc').value
+        description: document.getElementById('regDesc').value,
       });
-      showAlert('registryAlert', 'Реестр создан.', 'success');
+      showAlert('registryAlert', 'Реестр создан!', 'success');
+      document.getElementById('regTitle').value = '';
+      document.getElementById('regDesc').value = '';
       loadRegistries();
     } catch (e) { showAlert('registryAlert', e.message); }
   }
 
   async function loadRegistries() {
-    if (!currentUser || currentUser.role !== 'COUPLE') return;
     try {
       const data = await api('GET', '/registries');
       const list = document.getElementById('registryList');
-      if (!data.data?.length) { list.innerHTML = '<p class="text-muted">Реестров пока нет</p>'; return; }
+      if (!data.data?.length) {
+        list.innerHTML = '<div class="empty-state"><span class="empty-icon"></span><p>У вас пока нет реестров. Создайте первый!</p></div>';
+        return;
+      }
       list.innerHTML = data.data.map(r => `
-        <div class="card">
-          <div class="flex">
-            <div style="flex:1">
-              <h3>${escapeHtml(r.title)}</h3>
-              <p class="text-muted">${new Date(r.eventDate).toLocaleDateString('ru-RU')} · <span class="badge badge-${String(r.status).toLowerCase()}">${r.status}</span> · ${r._count?.gifts || r.gifts?.length || 0} подарков</p>
-              ${r.status === 'PUBLISHED' && r.shareToken ? `<div class="share-box">${window.location.origin}${window.location.pathname}?share=${escapeHtml(r.shareToken)}</div>` : ''}
-            </div>
-            <button class="btn btn-primary btn-sm" onclick='openRegistry(${r.id}, ${JSON.stringify(r.shareToken || '')}, ${JSON.stringify(r.title || '')}, ${JSON.stringify(r.status || '')})'>Управлять</button>
+        <div class="registry-item" onclick="openRegistry(${r.id}, '${r.shareToken}', '${r.title}', '${r.status}')">
+          <div class="registry-item-info">
+            <h3>${r.title}</h3>
+            <p>${formatDate(r.eventDate)} · <span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></p>
           </div>
+          <button class="btn btn-outline btn-sm" style="margin-top:0">Управлять →</button>
         </div>
       `).join('');
     } catch (e) { console.error(e); }
@@ -559,51 +1471,40 @@
   function openRegistry(id, token, title, status) {
     currentRegistryId = id;
     currentRegistryShareToken = token;
-    currentRegistryTitle = title;
-    currentRegistryStatus = status;
-    localStorage.setItem('currentRegistryId', id);
-    localStorage.setItem('currentRegistryShareToken', token || '');
-    localStorage.setItem('currentRegistryTitle', title || '');
-    localStorage.setItem('currentRegistryStatus', status || '');
-    renderCurrentRegistryHeader();
-    showPage('gifts');
-  }
-
-  function renderCurrentRegistryHeader() {
-    if (!currentRegistryId) return;
-    document.getElementById('giftsRegistryInfo').style.display = '';
-    document.getElementById('giftsRegistryTitle').textContent = currentRegistryTitle || `Реестр #${currentRegistryId}`;
-    document.getElementById('giftsRegistryStatus').innerHTML = `Статус: <span class="badge badge-${String(currentRegistryStatus || 'DRAFT').toLowerCase()}">${currentRegistryStatus || 'DRAFT'}</span>`;
-    const box = document.getElementById('giftsShareBox');
-    if (currentRegistryStatus === 'PUBLISHED' && currentRegistryShareToken) {
-      box.style.display = '';
-      box.textContent = `Share link: ${getShareLink()}`;
-    } else {
-      box.style.display = 'none';
-      box.textContent = '';
+    const giftsBtn = document.getElementById('nav-gifts');
+    if (giftsBtn) giftsBtn.textContent = `${title.substring(0, 15)}${title.length > 15 ? '...' : ''}`;
+    document.getElementById('giftsRegistryTitle').textContent = title;
+    document.getElementById('giftsStatusBadge').textContent = status;
+    document.getElementById('giftsStatusBadge').className = `badge badge-${status.toLowerCase()}`;
+    document.getElementById('giftsHeader').style.display = '';
+    if (token) {
+      document.getElementById('shareTokenCode').textContent = token;
+      document.getElementById('shareTokenBox').style.display = 'flex';
     }
+    if (document.getElementById('page-logistics')?.classList.contains('active')) populateLogisticsSelects();
+    showPage('gifts');
+    document.getElementById('invitesSection').style.display = '';
+    document.getElementById('giftImagesCard').style.display = '';
+    loadInvites();
+    loadGifts();
+    populateGiftSelect();
   }
 
   async function publishRegistry() {
-    if (!currentRegistryId) return showAlert('giftAlert', 'Сначала выберите реестр');
     try {
-      const updated = await api('PATCH', `/registries/${currentRegistryId}/publish`);
-      currentRegistryStatus = updated.status || 'PUBLISHED';
-      currentRegistryShareToken = updated.shareToken || currentRegistryShareToken;
-      localStorage.setItem('currentRegistryStatus', currentRegistryStatus);
-      localStorage.setItem('currentRegistryShareToken', currentRegistryShareToken || '');
-      renderCurrentRegistryHeader();
-      showAlert('giftAlert', 'Реестр опубликован. Share link готов.', 'success');
+      const r = await api('PATCH', `/registries/${currentRegistryId}/publish`);
+      showAlert('giftAlert', 'Реестр опубликован! Гости могут его видеть.', 'success');
+      document.getElementById('giftsStatusBadge').textContent = 'PUBLISHED';
+      document.getElementById('giftsStatusBadge').className = 'badge badge-published';
     } catch (e) { showAlert('giftAlert', e.message); }
   }
 
   function copyShareLink() {
-    const link = getShareLink();
-    if (!link) return alert('Share link пока недоступен');
-    navigator.clipboard?.writeText(link);
-    alert(`Share link скопирован: ${link}`);
+    navigator.clipboard.writeText(currentRegistryShareToken);
+    showAlert('giftAlert', 'Share token скопирован в буфер обмена!', 'success');
   }
 
+  // ── GIFTS ────────────────────────────────────────────────────
   async function addGift() {
     try {
       await api('POST', '/gifts', {
@@ -612,174 +1513,356 @@
         priceKzt: parseFloat(document.getElementById('giftPrice').value),
         giftType: document.getElementById('giftType').value,
         category: document.getElementById('giftCategory').value,
-        isPrivate: document.getElementById('giftPrivate').checked
+        isPrivate: document.getElementById('giftPrivate').checked,
       });
-      showAlert('giftAlert', 'Подарок добавлен.', 'success');
+      showAlert('giftAlert', 'Подарок добавлен!', 'success');
+      document.getElementById('giftTitle').value = '';
+      document.getElementById('giftPrice').value = '';
       loadGifts();
+      populateGiftSelect();
     } catch (e) { showAlert('giftAlert', e.message); }
-  }
-
-  function giftFunded(g) {
-    if (g.totalFunded !== undefined && g.totalFunded !== null) return Number(g.totalFunded);
-    return (g.contributions || []).filter(c => c.status === 'FUNDED' || c.status === 'PENDING').reduce((s, c) => s + Number(c.amountKzt || 0), 0);
-  }
-
-  function renderGiftCard(g) {
-    const funded = giftFunded(g);
-    const pct = g.giftType === 'POOL' ? Math.min(100, (funded / Number(g.priceKzt || 1)) * 100).toFixed(0) : 0;
-    return `
-      <div class="gift-card ${g.giftType === 'POOL' ? 'pool' : ''} ${g.isPrivate ? 'private' : ''}">
-        <h4>${escapeHtml(g.title)}</h4>
-        <div class="price">${formatKzt(g.priceKzt)}</div>
-        <div>
-          <span class="badge badge-${String(g.giftType).toLowerCase()}">${g.giftType}</span>
-          <span class="badge badge-${String(g.status || 'AVAILABLE').toLowerCase()}">${g.status || 'AVAILABLE'}</span>
-          ${g.isPrivate ? '<span class="badge badge-private">Приватный</span>' : ''}
-        </div>
-        ${g.giftType === 'POOL' ? `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><p class="text-muted">${formatKzt(funded)} из ${formatKzt(g.priceKzt)} (${pct}%)</p>` : ''}
-        ${g.status === 'RESERVED' && g.reservedUntil ? `<p class="text-muted mt-8">Зарезервировано до: ${new Date(g.reservedUntil).toLocaleString('ru-RU')}</p>` : ''}
-        ${currentUser?.role === 'COUPLE' ? `<button class="btn btn-danger btn-sm" onclick="deleteGift(${g.id})" style="margin-top:8px">Удалить</button>` : ''}
-      </div>
-    `;
   }
 
   async function loadGifts() {
     if (!currentRegistryId) return;
     try {
       const data = await api('GET', `/registries/${currentRegistryId}`);
-      currentRegistryTitle = data.title || currentRegistryTitle;
-      currentRegistryStatus = data.status || currentRegistryStatus;
-      currentRegistryShareToken = data.shareToken || currentRegistryShareToken;
-      currentRegistryGifts = data.gifts || [];
-      localStorage.setItem('currentRegistryTitle', currentRegistryTitle || '');
-      localStorage.setItem('currentRegistryStatus', currentRegistryStatus || '');
-      localStorage.setItem('currentRegistryShareToken', currentRegistryShareToken || '');
-      renderCurrentRegistryHeader();
-      document.getElementById('giftList').innerHTML = currentRegistryGifts.length ? currentRegistryGifts.map(renderGiftCard).join('') : '<p class="text-muted">Подарков пока нет</p>';
+      const gifts = data.gifts || [];
+      document.getElementById('giftsGiftCount').textContent = `${gifts.length} подарков`;
+      const list = document.getElementById('giftList');
+      if (!gifts.length) {
+        list.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon"></span><p>Подарков пока нет. Добавьте первый!</p></div>';
+        return;
+      }
+
+      // Fetch images for all gifts in parallel
+      const imagesMap = {};
+      await Promise.all(gifts.map(async g => {
+        try {
+          const imgs = await api('GET', `/gifts/${g.id}/images`);
+          const primary = imgs.find(i => i.isPrimary) || imgs[0];
+          if (primary) imagesMap[g.id] = primary.url;
+        } catch {}
+      }));
+
+      const funded = (g) => g.totalFunded || 0;
+      const pct = (g) => g.giftType === 'POOL' ? Math.min(100, (funded(g) / parseFloat(g.priceKzt) * 100)).toFixed(0) : 0;
+
+      list.innerHTML = gifts.map(g => `
+        <div class="gift-card ${g.giftType === 'POOL' ? 'pool' : ''} ${g.isPrivate ? 'private' : ''}">
+          ${imagesMap[g.id] ? `
+            <div style="margin:-20px -20px 16px;border-radius:9px 9px 0 0;overflow:hidden;height:160px">
+              <img src="${imagesMap[g.id]}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'" />
+            </div>
+          ` : ''}
+          <h4>${g.title}</h4>
+          <div class="gift-price">${formatKzt(g.priceKzt)}</div>
+          <div style="margin-bottom:10px">
+            <span class="badge badge-${g.giftType.toLowerCase()}">${g.giftType}</span>
+            <span class="badge badge-${g.status.toLowerCase()}">${g.status}</span>
+            ${g.isPrivate ? '<span class="badge badge-private">Приватный</span>' : ''}
+          </div>
+          ${g.giftType === 'POOL' ? `
+            <div class="progress-bar"><div class="progress-fill pool-fill" style="width:${pct(g)}%"></div></div>
+            <p class="text-muted">${formatKzt(funded(g))} из ${formatKzt(g.priceKzt)} · ${pct(g)}%</p>
+          ` : ''}
+          ${g.status === 'RESERVED' && g.reservedUntil ? `
+            <p class="text-muted mt-8" style="font-size:11px"> До: ${new Date(g.reservedUntil).toLocaleString('ru-RU')}</p>
+          ` : ''}
+          ${currentUser?.role === 'COUPLE' ? `
+            <div class="flex mt-8">
+              <button class="btn btn-danger btn-xs" onclick="deleteGift(${g.id})">Удалить</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
     } catch (e) { console.error(e); }
   }
 
   async function deleteGift(id) {
-    if (!confirm('Удалить подарок?')) return;
+    if (!confirm('Удалить подарок...')) return;
     try { await api('DELETE', `/gifts/${id}`); loadGifts(); } catch (e) { alert(e.message); }
   }
 
+  // ── PUBLIC REGISTRY ──────────────────────────────────────────
   async function loadPublicRegistry() {
     const token = document.getElementById('shareTokenInput').value.trim();
     if (!token) return;
+    await loadPublicRegistryByToken(token);
+    showAlert('guestAlert', 'Реестр загружен', 'success');
+  }
+
+  async function loadPublicRegistryByToken(token) {
     try {
       const data = await api('GET', `/registries/share/${token}`, null, false);
       const gifts = data.gifts || [];
-      document.getElementById('publicRegistryView').innerHTML = `
-        <div class="card"><h2>${escapeHtml(data.title)}</h2><p class="text-muted">Дата: ${new Date(data.eventDate).toLocaleDateString('ru-RU')}</p>${data.description ? `<p>${escapeHtml(data.description)}</p>` : ''}</div>
-        <div class="grid">${gifts.map(renderGiftCard).join('')}</div>
+
+      const imagesMap = {};
+      await Promise.all(gifts.map(async g => {
+        try {
+          const imgs = await api('GET', `/gifts/${g.id}/images`);
+          const primary = imgs.find(i => i.isPrimary) || imgs[0];
+          if (primary) imagesMap[g.id] = primary.url;
+        } catch {}
+      }));
+
+      const view = document.getElementById('publicRegistryView');
+      view.innerHTML = `
+        <div class="card" style="margin-top:16px;text-align:center">
+          <div style="font-size:36px;margin-bottom:8px"></div>
+          <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--brown)">${data.title}</h2>
+          <p class="text-muted">${formatDate(data.eventDate)}</p>
+          ${data.description ? `<p style="margin-top:8px;font-size:14px">${data.description}</p>` : ''}
+        </div>
+        <div class="grid-auto">
+          ${gifts.map(g => {
+            const funded = (g.contributions || []).reduce((s, c) => s + parseFloat(c.amountKzt), 0);
+            const pct = g.giftType === 'POOL' ? Math.min(100, (funded / parseFloat(g.priceKzt) * 100)).toFixed(0) : 0;
+            return `
+              <div class="gift-card ${g.giftType === 'POOL' ? 'pool' : ''}">
+                ${imagesMap[g.id] ? `
+                  <div style="margin:-20px -20px 16px;border-radius:9px 9px 0 0;overflow:hidden;height:160px">
+                    <img src="${imagesMap[g.id]}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'" />
+                  </div>
+                ` : ''}
+                <h4>${g.title}</h4>
+                <div class="gift-price">${formatKzt(g.priceKzt)}</div>
+                <div style="margin-bottom:10px">
+                  <span class="badge badge-${g.giftType.toLowerCase()}">${g.giftType}</span>
+                  <span class="badge badge-${g.status.toLowerCase()}">${g.status}</span>
+                </div>
+                ${g.giftType === 'POOL' ? `
+                  <div class="progress-bar"><div class="progress-fill pool-fill" style="width:${pct}%"></div></div>
+                  <p class="text-muted">${formatKzt(funded)} из ${formatKzt(g.priceKzt)} · ${pct}%</p>
+                  ${currentUser ? `<button class="btn btn-success btn-sm" style="margin-top:12px" onclick="openContributeModal(${g.id}, '${g.title}', ${g.priceKzt})">Скинуться</button>` : ''}
+                ` : `
+                  ${g.status === 'AVAILABLE' && currentUser?.role === 'GUEST' ? `<button class="btn btn-gold btn-sm" style="margin-top:12px" onclick="reserveGift(${g.id})">Забронировать</button>` : ''}
+                `}
+              </div>
+            `;
+          }).join('')}
+        </div>
       `;
-      showAlert('guestAlert', `Реестр "${data.title}" загружен`, 'success');
     } catch (e) { showAlert('guestAlert', e.message); }
   }
 
   async function reserveGift(giftId) {
-    try { await api('PATCH', `/gifts/${giftId}/reserve`); alert('Подарок зарезервирован на 48 часов.'); loadPublicRegistry(); } catch (e) { alert(e.message); }
-  }
-
-  function contributeModal(giftId, giftName, price) {
-    const amount = prompt(`Скинуться на "${giftName}" (цена ${formatKzt(price)}):\nВведите сумму в KZT:`);
-    if (!amount) return;
-    contribute(giftId, parseFloat(amount));
-  }
-
-  async function contribute(giftId, amountKzt) {
     try {
-      const c = await api('POST', '/contributions', { giftId, amountKzt, originalCurrency: 'KZT', amountOriginal: amountKzt, message: 'Поздравляю!' });
-      alert(`Вклад создан. Статус: ${c.status}. Payment ref: ${c.paymentRef}`);
-    } catch (e) { alert(e.message); }
+      await api('PATCH', `/gifts/${giftId}/reserve`);
+      showAlert('guestAlert', 'Подарок забронирован на 48 часов!', 'success');
+      loadPublicRegistry();
+    } catch (e) { showAlert('guestAlert', e.message); }
   }
 
-  async function loadLogisticsGiftOptions() {
-    if (!currentRegistryId) return;
-    if (!currentRegistryGifts.length) await loadGifts();
-    document.getElementById('logisticsRegistryHint').textContent = `Текущий реестр: ${currentRegistryTitle || currentRegistryId}`;
-    document.getElementById('logisticsGift').innerHTML = currentRegistryGifts.map(g => `<option value="${g.id}">${escapeHtml(g.title)}</option>`).join('');
+  // ── CONTRIBUTE MODAL ─────────────────────────────────────────
+  function openContributeModal(giftId, giftName, price) {
+    modalGiftId = giftId;
+    document.getElementById('modalGiftName').textContent = `${giftName} · ${formatKzt(price)}`;
+    document.getElementById('modalAmount').value = '';
+    document.getElementById('contributeModal').classList.add('open');
   }
 
-  async function dispatchCourier() {
-    if (!currentRegistryId) return showAlert('logisticsAlert', 'Сначала выберите реестр');
+  function closeModal() {
+    document.getElementById('contributeModal').classList.remove('open');
+    modalGiftId = null;
+  }
+
+  async function submitContribute() {
+    const amountKzt = parseFloat(document.getElementById('modalAmount').value);
+    const currency = document.getElementById('modalCurrency').value;
     try {
-      await api('POST', '/logistics', {
-        registryId: currentRegistryId,
-        giftId: Number(document.getElementById('logisticsGift').value),
-        courierProvider: document.getElementById('logisticsProvider').value,
-        pickupAddress: document.getElementById('pickupAddress').value,
-        deliveryAddress: document.getElementById('deliveryAddress').value,
-        isFragile: document.getElementById('isFragile').checked,
-        whiteGlove: document.getElementById('whiteGlove').checked
+      await api('POST', '/contributions', {
+        giftId: modalGiftId,
+        amountKzt,
+        originalCurrency: currency,
+        amountOriginal: amountKzt,
+        message: 'Поздравляю!'
       });
-      showAlert('logisticsAlert', 'Курьерский заказ создан.', 'success');
+      showAlert('contributeModalAlert', 'Вклад создан! Статус: PENDING', 'success');
+      setTimeout(closeModal, 1500);
+    } catch (e) { showAlert('contributeModalAlert', e.message); }
+  }
+
+  // ── KINSHIP ──────────────────────────────────────────────────
+  async function loadCouples() {
+    try {
+      const invites = await api('GET', '/invites/my');
+      const select = document.getElementById('kinshipCoupleSelect');
+      if (!select) return;
+
+      const manual = document.getElementById('kinshipCoupleIdManual');
+      if (manual) manual.remove();
+
+      const accepted = invites.filter(i => i.status === 'ACCEPTED');
+      if (!accepted.length) {
+        select.innerHTML = '<option value="">Нет принятых приглашений</option>';
+        return;
+      }
+      select.innerHTML = '<option value="">Выберите пару...</option>' +
+        accepted.map(i => `<option value="${i.registry.coupleId || i.registryId}">${i.registry.title} — ${formatDate(i.registry.eventDate)}</option>`).join('');
+    } catch (e) { console.error(e); }
+  }
+
+  async function setKinship() {
+    try {
+      const data = await api('POST', '/kinship', {
+        coupleId: parseInt(document.getElementById('kinshipCoupleSelect').value),
+        kinshipType: document.getElementById('kinshipType').value,
+      });
+      showAlert('kinshipAlert', ` Родство установлено! Рекомендуемая сумма: ${formatKzt(data.suggestedContributionKzt)}`, 'success');
+    } catch (e) { showAlert('kinshipAlert', e.message); }
+  }
+
+  async function loadFamilyTree() {
+    const coupleId = document.getElementById('kinshipCoupleSelect').value;
+    if (!coupleId) return;
+    try {
+      const data = await api('GET', `/kinship/${coupleId}/tree`);
+      const result = document.getElementById('familyTreeResult');
+      const tree = Array.isArray(data) ? data : (data.familyTree || []);
+      if (!tree.length) {
+        result.innerHTML = '<div class="empty-state"><span class="empty-icon"></span><p>Родственников пока нет</p></div>';
+        return;
+      }
+      result.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Имя</th><th>Тип родства</th><th>Tier</th><th>Рек. сумма</th></tr></thead>
+            <tbody>
+              ${tree.map(f => `
+                <tr>
+                  <td>${f.name || f.guestName || '—'}</td>
+                  <td>${f.kinshipType}</td>
+                  <td><span class="badge badge-single">Tier ${f.tier}</span></td>
+                  <td>${formatKzt(f.suggestedContributionKzt || (f.tier === 1 ? 100000 : f.tier === 2 ? 50000 : f.tier === 3 ? 30000 : 15000))}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch (e) { showAlert('kinshipAlert', e.message); }
+  }
+
+  // ── LOGISTICS ────────────────────────────────────────────────
+  function checkFragile() {
+    if (document.getElementById('logFragile').checked) {
+      document.getElementById('logWhiteGlove').checked = true;
+      document.getElementById('logProvider').value = 'CHOCO';
+    }
+  }
+
+  async function populateLogisticsSelects() {
+    try {
+      // Load registries
+      const regData = await api('GET', '/registries');
+      const regSelect = document.getElementById('logRegistrySelect');
+      regSelect.innerHTML = '<option value="">Выберите реестр...</option>' +
+        (regData.data || []).map(r => `<option value="${r.id}" ${r.id === currentRegistryId ? 'selected' : ''}>${r.title}</option>`).join('');
+
+      // Load gifts for selected registry
+      const regId = currentRegistryId || (regData.data?.[0]?.id);
+      if (regId) {
+        const giftData = await api('GET', `/registries/${regId}`);
+        const giftSelect = document.getElementById('logGiftSelect');
+        giftSelect.innerHTML = '<option value="">Выберите подарок...</option>' +
+          (giftData.gifts || []).map(g => `<option value="${g.id}">${g.title} — ${formatKzt(g.priceKzt)}</option>`).join('');
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async function createLogisticsOrder() {
+    try {
+      const selectedRegistryId = document.getElementById('logRegistrySelect').value;
+      await api('POST', '/logistics', {
+        giftId: parseInt(document.getElementById('logGiftSelect').value),
+        registryId: parseInt(selectedRegistryId) || currentRegistryId,
+        courierProvider: document.getElementById('logProvider').value,
+        pickupAddress: document.getElementById('logPickup').value,
+        deliveryAddress: document.getElementById('logDelivery').value,
+        isFragile: document.getElementById('logFragile').checked,
+        whiteGlove: document.getElementById('logWhiteGlove').checked,
+      });
+      showAlert('logisticsAlert', 'Заказ курьера создан!', 'success');
       loadLogisticsOrders();
     } catch (e) { showAlert('logisticsAlert', e.message); }
   }
 
   async function loadLogisticsOrders() {
-    if (!currentRegistryId) { document.getElementById('logisticsOrders').innerHTML = '<p class="text-muted">Сначала выберите реестр.</p>'; return; }
+    const regId = document.getElementById('logRegistrySelect').value || currentRegistryId;
+    if (!regId) return;
     try {
-      const orders = await api('GET', `/logistics/registry/${currentRegistryId}`);
-      document.getElementById('logisticsOrders').innerHTML = orders.length ? `
-        <div class="table-wrap"><table><thead><tr><th>Подарок</th><th>Провайдер</th><th>Статус</th><th>Забор</th><th>Доставка</th><th>ETA</th></tr></thead><tbody>
-        ${orders.map(o => `<tr><td>${escapeHtml(o.gift?.title || o.giftId)}</td><td>${o.courierProvider}</td><td>${o.status}</td><td>${escapeHtml(o.pickupAddress)}</td><td>${escapeHtml(o.deliveryAddress)}</td><td>${o.estimatedAt ? new Date(o.estimatedAt).toLocaleString('ru-RU') : '-'}</td></tr>`).join('')}
-        </tbody></table></div>` : '<p class="text-muted">Заказов доставки пока нет</p>';
+      const data = await api('GET', `/logistics/registry/${regId}`);
+      const orders = Array.isArray(data) ? data : (data.data || []);
+      const list = document.getElementById('logisticsList');
+      if (!orders.length) {
+        list.innerHTML = '<div class="empty-state"><span class="empty-icon"></span><p>Заказов пока нет</p></div>';
+        return;
+      }
+      list.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Провайдер</th><th>Статус</th><th>Хрупкий</th><th>White Glove</th><th>Действия</th></tr></thead>
+            <tbody>
+              ${orders.map(o => `
+                <tr>
+                  <td>#${o.id}</td>
+                  <td>${o.courierProvider}</td>
+                  <td><span class="badge badge-${o.status.toLowerCase()}">${o.status}</span></td>
+                  <td>${o.isFragile ? '(Fragile) Да' : 'Нет'}</td>
+                  <td>${o.whiteGlove ? '(White Glove) Да' : 'Нет'}</td>
+                  <td>
+                    <select onchange="updateLogisticsStatus(${o.id}, this.value)" style="padding:4px 8px;font-size:12px;width:auto">
+                      <option>Обновить статус...</option>
+                      <option value="ASSIGNED">ASSIGNED</option>
+                      <option value="IN_TRANSIT">IN_TRANSIT</option>
+                      <option value="DELIVERED">DELIVERED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
     } catch (e) { showAlert('logisticsAlert', e.message); }
   }
 
-  async function loadContributionsHistory() {
-    if (!currentRegistryId) { document.getElementById('contributionsList').innerHTML = '<div class="card"><p class="text-muted">Сначала выберите реестр.</p></div>'; return; }
+  async function updateLogisticsStatus(id, status) {
+    if (!status || status === 'Обновить статус...') return;
     try {
-      const registry = await api('GET', `/registries/${currentRegistryId}`);
-      const rows = (registry.gifts || []).flatMap(g => (g.contributions || []).map(c => ({ gift: g, contribution: c })));
-      document.getElementById('contributionsList').innerHTML = rows.length ? `
-        <div class="card table-wrap"><table><thead><tr><th>Подарок</th><th>Гость</th><th>Сумма</th><th>Статус</th><th>Payment Ref</th></tr></thead><tbody>
-          ${rows.map(({ gift, contribution }) => `<tr><td>${escapeHtml(gift.title)}</td><td>${escapeHtml(contribution.guest?.name || contribution.guestName || contribution.guestId || '-')}</td><td>${formatKzt(contribution.amountKzt)}</td><td>${contribution.status}</td><td>${escapeHtml(contribution.paymentRef || '-')}</td></tr>`).join('')}
-        </tbody></table></div>` : '<div class="card"><p class="text-muted">Вкладов пока нет или API реестра не возвращает contributions.</p></div>';
-    } catch (e) { showAlert('contributionsAlert', e.message); }
+      await api('PATCH', `/logistics/${id}/status`, { status });
+      showAlert('logisticsAlert', ` Статус обновлён: ${status}`, 'success');
+      loadLogisticsOrders();
+    } catch (e) { showAlert('logisticsAlert', e.message); }
   }
 
-  async function testPaymentWebhook() {
-    try {
-      await api('POST', '/contributions/webhook/payment', { paymentRef: document.getElementById('webhookPaymentRef').value, status: 'SUCCESS' }, false);
-      showAlert('contributionsAlert', 'Webhook SUCCESS отправлен.', 'success');
-      loadContributionsHistory();
-    } catch (e) { showAlert('contributionsAlert', e.message); }
-  }
-
-  async function setKinship() {
-    try {
-      const data = await api('POST', '/kinship', { coupleId: parseInt(document.getElementById('kinshipCoupleId').value), kinshipType: document.getElementById('kinshipType').value });
-      showAlert('kinshipAlert', `Родство установлено. Рекомендуемая сумма: ${formatKzt(data.suggestedContributionKzt)}`, 'success');
-    } catch (e) { showAlert('kinshipAlert', e.message); }
-  }
-
-  async function loadFamilyTree() {
-    const coupleId = document.getElementById('familyTreeCoupleId').value;
-    try {
-      const data = await api('GET', `/kinship/${coupleId}/tree`);
-      const rows = Array.isArray(data) ? data : data.familyTree || [];
-      document.getElementById('familyTreeResult').innerHTML = rows.length ? `
-        <table style="margin-top:8px"><thead><tr><th>Имя</th><th>Тип родства</th><th>Tier</th><th>Depth</th></tr></thead><tbody>
-        ${rows.map(f => `<tr><td>${escapeHtml(f.name || f.guestName || f.userId)}</td><td>${f.kinshipType}</td><td>${f.tier}</td><td>${f.depth || '-'}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="text-muted mt-8">Родственников нет</p>';
-    } catch (e) { showAlert('kinshipAlert', e.message); }
-  }
-
+  // ── NOTIFICATIONS ────────────────────────────────────────────
   async function loadNotifications() {
     try {
       const data = await api('GET', '/notifications');
       const badge = document.getElementById('unreadBadge');
-      badge.style.display = data.unreadCount > 0 ? 'inline' : 'none';
-      badge.textContent = data.unreadCount || 0;
-      document.getElementById('notificationList').innerHTML = data.data?.length ? data.data.map(n => `
-        <div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;gap:8px;align-items:flex-start">
-          <span class="dot ${n.isRead ? 'dot-green' : 'dot-red'}"></span><div style="flex:1"><div style="font-size:13px">${escapeHtml(n.message)}</div><div class="text-muted">${new Date(n.createdAt).toLocaleString('ru-RU')}</div></div>
-          ${!n.isRead ? `<button class="btn btn-sm btn-muted" onclick="markRead(${n.id})">OK</button>` : ''}
-        </div>`).join('') : '<p class="text-muted">Уведомлений нет</p>';
+      if (data.unreadCount > 0) {
+        badge.style.display = 'inline';
+        badge.textContent = data.unreadCount;
+      } else { badge.style.display = 'none'; }
+
+      const list = document.getElementById('notificationList');
+      if (!data.data?.length) {
+        list.innerHTML = '<div class="empty-state"><span class="empty-icon"></span><p>Уведомлений нет</p></div>';
+        return;
+      }
+      list.innerHTML = data.data.map(n => `
+        <div class="notif-item">
+          <div class="notif-dot ${n.isRead ? 'read' : ''}"></div>
+          <div style="flex:1">
+            <div class="notif-text" style="color:${n.isRead ? 'var(--text-muted)' : 'var(--text)'}">${n.message}</div>
+            <div class="notif-time">${new Date(n.createdAt).toLocaleString('ru-RU')}</div>
+          </div>
+          ${!n.isRead ? `<button class="btn btn-ghost btn-xs" onclick="markRead(${n.id})" style="margin-top:0">✓</button>` : ''}
+        </div>
+      `).join('');
     } catch (e) { console.error(e); }
   }
 
@@ -796,32 +1879,83 @@
     try {
       const url = regId ? `/notifications/etiquette?registryId=${regId}` : '/notifications/etiquette';
       const data = await api('GET', url);
-      document.getElementById('etiquetteResult').innerHTML = `<div class="alert alert-${data.canSendNotification ? 'success' : 'info'} show" style="margin-top:12px">${escapeHtml(data.explanation)}<br><small>Период kuttykau: ${data.isKuttykauPeriod ? 'Да' : 'Нет'} · Приличный час: ${data.isPoliteHour ? 'Да' : 'Нет'}</small></div>`;
+      document.getElementById('etiquetteResult').innerHTML = `
+        <div class="alert alert-${data.canSendNotification ? 'success' : 'info'} show" style="margin-top:16px">
+          ${data.canSendNotification ? '' : ''} ${data.explanation || data.message || ''}
+          <br><small style="opacity:0.8">Период құттықтау: ${data.isKuttykauPeriod ? 'Да' : 'Нет'} · Подходящий час: ${data.isPoliteHour ? 'Да' : 'Нет'}</small>
+        </div>
+      `;
     } catch (e) { alert(e.message); }
   }
 
+  // ── ADMIN ────────────────────────────────────────────────────
   function switchAdminTab(tab) {
     ['users','registries','contributions'].forEach(t => {
       document.getElementById(`admin-${t}`).style.display = t === tab ? '' : 'none';
       document.getElementById(`atab-${t}`).classList.toggle('active', t === tab);
     });
+    if (tab === 'users') loadAdminUsers();
+    if (tab === 'registries') loadAdminRegistries();
+    if (tab === 'contributions') loadAdminContributions();
   }
 
   async function loadAdminUsers() {
     try {
       const data = await api('GET', '/admin/users');
-      document.getElementById('adminUsersList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${(data.data || []).map(u => `<tr><td>${u.id}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.email)}</td><td>${u.role}</td><td>${u.isSuspended ? 'Заблокирован' : 'Активен'}</td><td><button class="btn btn-sm ${u.isSuspended ? 'btn-success' : 'btn-danger'}" onclick="suspendUser(${u.id}, ${!u.isSuspended})">${u.isSuspended ? 'Разблокировать' : 'Заблокировать'}</button></td></tr>`).join('')}</tbody></table></div><p class="text-muted mt-8">Всего: ${data.total}</p>`;
+      document.getElementById('adminUsersList').innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th><th>Действия</th></tr></thead>
+          <tbody>
+            ${(data.data || []).map(u => `
+              <tr>
+                <td>${u.id}</td>
+                <td>${u.name}</td>
+                <td style="font-size:12px;color:var(--text-muted)">${u.email}</td>
+                <td><span class="badge badge-single">${u.role}</span></td>
+                <td><span class="dot ${u.isSuspended ? 'dot-red' : 'dot-green'}"></span>${u.isSuspended ? 'Заблокирован' : 'Активен'}</td>
+                <td>
+                  <button class="btn btn-xs ${u.isSuspended ? 'btn-success' : 'btn-danger'}" onclick="suspendUser(${u.id}, ${!u.isSuspended})" style="margin-top:0">
+                    ${u.isSuspended ? 'Разблокировать' : 'Заблокировать'}
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p class="text-muted mt-8">Всего: ${data.total}</p>
+      `;
     } catch (e) { alert(e.message); }
   }
 
   async function suspendUser(id, suspend) {
-    try { await api('PATCH', `/admin/users/${id}/suspend`, { isSuspended: suspend }); loadAdminUsers(); } catch (e) { alert(e.message); }
+    try {
+      const action = suspend ? 'suspend' : 'unsuspend';
+      await api('PATCH', `/admin/users/${id}/${action}`);
+      loadAdminUsers();
+    } catch (e) { alert(e.message); }
   }
 
   async function loadAdminRegistries() {
     try {
       const data = await api('GET', '/admin/registries');
-      document.getElementById('adminRegistriesList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Название</th><th>Пара</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${(data.data || []).map(r => `<tr><td>${r.id}</td><td>${escapeHtml(r.title)}</td><td>${escapeHtml(r.couple?.name || '-')}</td><td>${r.status}</td><td>${r.status !== 'CLOSED' ? `<button class="btn btn-sm btn-danger" onclick="closeRegistry(${r.id})">Закрыть</button>` : '-'}</td></tr>`).join('')}</tbody></table></div>`;
+      document.getElementById('adminRegistriesList').innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Название</th><th>Пара</th><th>Статус</th><th>Действия</th></tr></thead>
+          <tbody>
+            ${(data.data || []).map(r => `
+              <tr>
+                <td>${r.id}</td>
+                <td>${r.title}</td>
+                <td>${r.couple?.name || '—'}</td>
+                <td><span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></td>
+                <td>
+                  ${r.status !== 'CLOSED' ? `<button class="btn btn-xs btn-danger" onclick="closeRegistry(${r.id})" style="margin-top:0">Закрыть</button>` : '—'}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     } catch (e) { alert(e.message); }
   }
 
@@ -832,34 +1966,633 @@
   async function loadAdminContributions() {
     try {
       const data = await api('GET', '/admin/contributions');
-      document.getElementById('adminContributionsList').innerHTML = `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Гость</th><th>Подарок</th><th>Сумма</th><th>Валюта</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${(data.data || []).map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.guest?.name || '-')}</td><td>${escapeHtml(c.gift?.title || '-')}</td><td>${formatKzt(c.amountKzt)}</td><td>${c.originalCurrency}</td><td>${c.status}</td><td><button class="btn btn-sm" onclick="flagContribution(${c.id})" style="background:#e67e22;color:white">Флаг</button></td></tr>`).join('')}</tbody></table></div>`;
+      document.getElementById('adminContributionsList').innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Гость</th><th>Подарок</th><th>Сумма</th><th>Валюта</th><th>Статус</th><th>Действия</th></tr></thead>
+          <tbody>
+            ${(data.data || []).map(c => `
+              <tr>
+                <td>${c.id}</td>
+                <td>${c.guest?.name || '—'}</td>
+                <td>${c.gift?.title || '—'}</td>
+                <td>${formatKzt(c.amountKzt)}</td>
+                <td>${c.originalCurrency}</td>
+                <td><span class="badge badge-${c.status.toLowerCase()}">${c.status}</span></td>
+                <td>
+                  ${c.status === 'PENDING' ? `
+                    <button class="btn btn-xs btn-success" onclick="confirmPayment('${c.paymentRef}')" style="margin-top:0;margin-right:4px">✓ Оплачено</button>
+                  ` : ''}
+                  <button class="btn btn-xs" onclick="flagContribution(${c.id})" style="background:#e67e22;color:white;margin-top:0">Флаг</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     } catch (e) { alert(e.message); }
   }
 
   async function flagContribution(id) {
     const reason = prompt('Причина флага:');
     if (!reason) return;
-    try { await api('PATCH', `/admin/contributions/${id}/flag`, { reason }); alert('Вклад отмечен.'); } catch (e) { alert(e.message); }
+    try { await api('PATCH', `/admin/contributions/${id}/flag`, { reason }); alert(' Вклад флагнут'); } catch (e) { alert(e.message); }
   }
 
-  window.onload = function init() {
-    updateNav();
-    const params = new URLSearchParams(window.location.search);
-    const verifyToken = params.get('token');
-    resetToken = params.get('reset') || '';
-    const shareToken = params.get('share');
-    if (verifyToken) return verifyEmailFromUrl(verifyToken);
-    if (resetToken) return showPage('reset');
-    if (shareToken) {
-      showPage('guest');
-      document.getElementById('shareTokenInput').value = shareToken;
-      loadPublicRegistry();
-      return;
+  async function confirmPayment(paymentRef) {
+    try {
+      await api('POST', '/contributions/webhook/payment', {
+        paymentRef,
+        status: 'SUCCESS'
+      }, true);
+      showAlert('adminContribAlert', 'Оплата подтверждена! Статус изменён на FUNDED.', 'success');
+      await loadAdminContributions();
+      // If couple is viewing gifts, refresh them too
+      if (currentRegistryId) await loadGifts();
+      // Refresh public registry view if open
+      const shareToken = document.getElementById('shareTokenInput')?.value;
+      if (shareToken) await loadPublicRegistryByToken(shareToken);
+    } catch (e) { alert(e.message); }
+  }
+
+  // ── INVITES ──────────────────────────────────────────────────
+  async function inviteGuest() {
+    const email = document.getElementById('inviteEmail').value;
+    try {
+      await api('POST', `/registries/${currentRegistryId}/invites`, { guestEmail: email });
+      showAlert('inviteAlert', 'Гость приглашён!', 'success');
+      document.getElementById('inviteEmail').value = '';
+      loadInvites();
+    } catch (e) { showAlert('inviteAlert', e.message); }
+  }
+
+  async function loadInvites() {
+    if (!currentRegistryId) return;
+    try {
+      const data = await api('GET', `/registries/${currentRegistryId}/invites`);
+      const list = document.getElementById('invitesList');
+      if (!data.length) { list.innerHTML = '<p class="text-muted">Приглашений пока нет</p>'; return; }
+      list.innerHTML = `
+        <table>
+          <thead><tr><th>Гость</th><th>Email</th><th>Статус</th></tr></thead>
+          <tbody>
+            ${data.map(i => `
+              <tr>
+                <td>${i.guest.name}</td>
+                <td style="font-size:12px;color:var(--text-muted)">${i.guest.email}</td>
+                <td><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadMyInvites() {
+    try {
+      const data = await api('GET', '/invites/my');
+      const list = document.getElementById('myInvitesList');
+      if (!data.length) { list.innerHTML = '<div class="empty-state"><span class="empty-icon"></span><p>Приглашений нет</p></div>'; return; }
+
+      list.innerHTML = data.map(i => `
+        <div style="padding:16px 0;border-bottom:1px solid var(--cream-dark)">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--brown)">${i.registry.title}</div>
+          <p class="text-muted">${formatDate(i.registry.eventDate)}</p>
+          <div class="flex mt-8">
+            <span class="badge badge-${i.status.toLowerCase()}">${i.status}</span>
+            ${i.status === 'PENDING' ? `
+              <button class="btn btn-success btn-xs" onclick="respondInvite(${i.registry.id}, 'ACCEPTED')" style="margin-top:0">Принять</button>
+              <button class="btn btn-danger btn-xs" onclick="respondInvite(${i.registry.id}, 'DECLINED')" style="margin-top:0">Отказать</button>
+            ` : ''}
+            ${i.status === 'ACCEPTED' ? `
+              <button class="btn btn-gold btn-xs" onclick="openRegistryAsGuest('${i.registry.shareToken}', '${i.registry.title}')" style="margin-top:0">Смотреть подарки</button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      // Auto-load gifts for first accepted invite
+      const firstAccepted = data.find(i => i.status === 'ACCEPTED');
+      if (firstAccepted && firstAccepted.registry.shareToken) {
+        document.getElementById('publicRegistryView').innerHTML = '';
+        document.getElementById('shareTokenInput').value = firstAccepted.registry.shareToken;
+        loadPublicRegistryByToken(firstAccepted.registry.shareToken);
+      }
+    } catch (e) { alert(e.message); }
+  }
+
+  async function openRegistryAsGuest(token, title) {
+    document.getElementById('shareTokenInput').value = token;
+    await loadPublicRegistryByToken(token);
+    // Scroll to registry view
+    document.getElementById('publicRegistryView').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function respondInvite(registryId, status) {
+    try {
+      await api('PATCH', `/registries/${registryId}/invites/respond`, { status });
+      loadMyInvites();
+    } catch (e) { alert(e.message); }
+  }
+
+  // ── GIFT IMAGES ───────────────────────────────────────────────
+  async function populateGiftSelect() {
+    if (!currentRegistryId) return;
+    try {
+      const data = await api('GET', `/registries/${currentRegistryId}`);
+      const select = document.getElementById('imageGiftSelect');
+      select.innerHTML = '<option value="">Выберите подарок...</option>' +
+        (data.gifts || []).map(g => `<option value="${g.id}">${g.title} — ${formatKzt(g.priceKzt)}</option>`).join('');
+    } catch (e) { console.error(e); }
+  }
+
+  async function addGiftImage() {
+    const giftId = parseInt(document.getElementById('imageGiftSelect').value);
+    const url = document.getElementById('imageUrl').value;
+    const isPrimary = document.getElementById('imagePrimary').checked;
+    try {
+      await api('POST', `/gifts/${giftId}/images`, { url, isPrimary });
+      showAlert('imageAlert', 'Фото добавлено!', 'success');
+      document.getElementById('imageUrl').value = '';
+    } catch (e) { showAlert('imageAlert', e.message); }
+  }
+
+  async function loadGiftImages() {
+    const giftId = document.getElementById('imageGiftSelect').value;
+    try {
+      const data = await api('GET', `/gifts/${giftId}/images`);
+      const list = document.getElementById('giftImagesList');
+      if (!data.length) { list.innerHTML = '<p class="text-muted">Фото нет</p>'; return; }
+      list.innerHTML = `<div class="grid-auto">` + data.map(img => `
+        <div style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:var(--cream-dark)">
+          <img src="${img.url}" style="width:100%;height:100%;object-fit:cover" onerror="this.src=''" />
+          ${img.isPrimary ? '<span class="badge badge-pool" style="position:absolute;top:6px;left:6px">Главное</span>' : ''}
+          <button class="btn btn-danger btn-xs" onclick="deleteGiftImage(${img.id})" style="position:absolute;top:6px;right:6px;margin-top:0">✕</button>
+        </div>
+      `).join('') + '</div>';
+    } catch (e) { showAlert('imageAlert', e.message); }
+  }
+
+  async function deleteGiftImage(imageId) {
+    const giftId = document.getElementById('imageGiftSelect').value;
+    try {
+      await api('DELETE', `/gifts/${giftId}/images/${imageId}`);
+      loadGiftImages();
+    } catch (e) { alert(e.message); }
+  }
+
+  // ── LANGUAGE ─────────────────────────────────────────────────
+  let currentLang = localStorage.getItem('lang') || 'ru';
+
+  const translations = {
+    ru: {
+      home: 'Главная', profile: 'Профиль', registries: 'Реестры',
+      gifts: 'Подарки', logistics: 'Логистика', notifications: 'Уведомления',
+      kinship: 'Родство', admin: 'Админ', login: 'Войти', guestView: 'Реестр по ссылке',
+      logout: 'Выйти',
+      welcomeBack: 'Добро пожаловать', createAccount: 'Создать аккаунт', resetPassword: 'Сброс пароля',
+      email: 'Email', password: 'Пароль', name: 'Имя', role: 'Роль',
+      loginBtn: 'Войти', registerBtn: 'Зарегистрироваться', sendLink: 'Отправить ссылку',
+      guestRole: 'Гость', coupleRole: 'Пара (жених/невеста)',
+      verifyEmailHint: 'После регистрации проверьте email для подтверждения',
+      myRegistries: 'Мои реестры', createRegistry: 'Создать реестр',
+      weddingTitle: 'Название', weddingDate: 'Дата свадьбы', description: 'Описание',
+      createBtn: 'Создать реестр', manage: 'Управлять →',
+      noRegistries: 'У вас пока нет реестров. Создайте первый!',
+      addGift: 'Добавить подарок', giftTitle: 'Название', giftPrice: 'Цена (тенге)',
+      giftType: 'Тип подарка', category: 'Категория',
+      singleType: 'SINGLE — один покупает', poolType: 'POOL — все скидываются',
+      privateGift: 'Приватный (только родственники tier 1-2)',
+      addGiftBtn: 'Добавить подарок', deleteBtn: 'Удалить', publishBtn: '✓ Опубликовать',
+      copyLink: 'Ссылка', noGifts: 'Подарков пока нет. Добавьте первый!',
+      setKinship: 'Указать родство', kinshipTiers: 'Тиры родства',
+      familyTree: 'Дерево родства', loadTree: 'Загрузить дерево',
+      selectCouple: 'Выберите пару...', kinshipType: 'Тип родства',
+      setKinshipBtn: 'Установить родство', noAcceptedInvites: 'Нет принятых приглашений',
+      readAll: 'Прочитать все', noNotifications: 'Уведомлений нет',
+      etiquetteTitle: 'Etiquette — Культурный тайминг', checkBtn: 'Проверить',
+      adminPanel: 'Панель администратора', users: 'Пользователи',
+      allRegistries: 'Реестры', contributions: 'Вклады',
+      refresh: 'Обновить', block: 'Заблокировать', unblock: 'Разблокировать',
+      close: 'Закрыть', flag: 'Флаг', confirmPayment: '✓ Оплачено',
+      createOrder: 'Создать заказ', provider: 'Провайдер', pickupAddress: 'Адрес получения',
+      deliveryAddress: 'Адрес доставки', fragile: '(Fragile) Хрупкий предмет',
+      whiteGlove: '(White Glove) Бережная доставка', createOrderBtn: 'Создать заказ',
+      registryOrders: 'Заказы реестра', loadBtn: 'Загрузить',
+      myProfile: 'Личный кабинет', saveProfile: 'Сохранить профиль',
+      security: 'Безопасность', changePassword: 'Изменить пароль',
+      bio: 'О себе', phone: 'Телефон', city: 'Город',
+      registryByLink: 'Реестр по ссылке', enterToken: 'Вставьте share token здесь...',
+      openBtn: 'Открыть', myInvites: 'Мои приглашения',
+      acceptBtn: 'Принять', declineBtn: 'Отказать', viewGifts: 'Смотреть подарки',
+      contribute: 'Скинуться', reserve: 'Забронировать',
+    },
+    en: {
+      home: 'Home', profile: 'Profile', registries: 'Registries',
+      gifts: 'Gifts', logistics: 'Logistics', notifications: 'Notifications',
+      kinship: 'Kinship', admin: 'Admin', login: 'Sign In', guestView: 'Browse Registry',
+      logout: 'Sign Out',
+      welcomeBack: 'Welcome Back', createAccount: 'Create Account', resetPassword: 'Reset Password',
+      email: 'Email', password: 'Password', name: 'Full Name', role: 'Role',
+      loginBtn: 'Sign In', registerBtn: 'Create Account', sendLink: 'Send Reset Link',
+      guestRole: 'Guest', coupleRole: 'Couple (bride/groom)',
+      verifyEmailHint: 'After registration, check your email to verify your account',
+      myRegistries: 'My Registries', createRegistry: 'Create Registry',
+      weddingTitle: 'Title', weddingDate: 'Wedding Date', description: 'Description',
+      createBtn: 'Create Registry', manage: 'Manage →',
+      noRegistries: 'No registries yet. Create your first one!',
+      addGift: 'Add Gift', giftTitle: 'Title', giftPrice: 'Price (KZT)',
+      giftType: 'Gift Type', category: 'Category',
+      singleType: 'SINGLE — one buyer', poolType: 'POOL — group contribution',
+      privateGift: 'Private (tier 1-2 relatives only)',
+      addGiftBtn: 'Add Gift', deleteBtn: 'Delete', publishBtn: '✓ Publish',
+      copyLink: 'Share Link', noGifts: 'No gifts yet. Add the first one!',
+      setKinship: 'Set Kinship', kinshipTiers: 'Kinship Tiers',
+      familyTree: 'Family Tree', loadTree: 'Load Tree',
+      selectCouple: 'Select couple...', kinshipType: 'Kinship Type',
+      setKinshipBtn: 'Set Kinship', noAcceptedInvites: 'No accepted invitations',
+      readAll: 'Mark all read', noNotifications: 'No notifications',
+      etiquetteTitle: 'Etiquette — Cultural Timing', checkBtn: 'Check',
+      adminPanel: 'Admin Panel', users: 'Users',
+      allRegistries: 'Registries', contributions: 'Contributions',
+      refresh: 'Refresh', block: 'Suspend', unblock: 'Unsuspend',
+      close: 'Close', flag: 'Flag', confirmPayment: '✓ Confirm Payment',
+      createOrder: 'Create Order', provider: 'Provider', pickupAddress: 'Pickup Address',
+      deliveryAddress: 'Delivery Address', fragile: '(Fragile) Fragile Item',
+      whiteGlove: '(White Glove) Careful handling', createOrderBtn: 'Create Order',
+      registryOrders: 'Registry Orders', loadBtn: 'Load',
+      myProfile: 'My Profile', saveProfile: 'Save Profile',
+      security: 'Security', changePassword: 'Change Password',
+      bio: 'About Me', phone: 'Phone', city: 'City',
+      registryByLink: 'Browse Registry', enterToken: 'Paste share token here...',
+      openBtn: 'Open', myInvites: 'My Invitations',
+      acceptBtn: 'Accept', declineBtn: 'Decline', viewGifts: 'View Gifts',
+      contribute: 'Contribute', reserve: 'Reserve',
     }
-    if (currentRegistryId) renderCurrentRegistryHeader();
-    if (currentUser) showPage(currentUser.role === 'COUPLE' ? 'registry' : currentUser.role === 'ADMIN' ? 'admin' : 'guest');
-    else showPage('home');
   };
+
+  Object.assign(translations.ru, {
+    heroSubtitle: 'Свадебный реестр подарков в казахских традициях',
+    startBtn: 'Начать →',
+    feat1Title: 'Pool подарки', feat1Desc: 'Все гости скидываются вместе на один дорогой подарок с отслеживанием вкладов',
+    feat2Title: 'Родство', feat2Desc: 'Ата-ана, туыс, жиен-жаран — рекомендуемые суммы по казахским традициям',
+    feat3Title: 'Мультивалютность', feat3Desc: 'Курс валюты фиксируется в момент вклада. USD, EUR, KZT',
+    feat4Title: 'Приватные подарки', feat4Desc: 'Разграничение доступа по тирам родства — только близкие видят личные подарки',
+    feat5Title: 'Логистика', feat5Desc: 'Курьерская доставка CHOCO и inDriver с поддержкой хрупких предметов',
+    feat6Title: 'Уведомления', feat6Desc: 'Культурный тайминг уведомлений — "құттықтау" в подходящий момент',
+    tabLogin: 'Войти', tabRegister: 'Регистрация', tabForgot: 'Сброс пароля',
+    forgotBtn: 'Отправить ссылку',
+    emailPlaceholder: 'email@example.com', passwordPlaceholder: '••••••••', namePlaceholder: 'Имя',
+    profileTitle: 'Личный кабинет', profileSubtitle: 'Управляйте своим профилем',
+    registriesTitle: 'Мои реестры', registriesSubtitle: 'Управляйте свадебными реестрами подарков',
+    publishBtn: '✓ Опубликовать', copyLinkBtn: 'Ссылка',
+    kinshipTitle: 'Родство', kinshipSubtitle: 'Укажите ваше родство с парой для рекомендации суммы',
+    logisticsTitle: 'Логистика', notificationsTitle: 'Уведомления',
+    adminTitle: 'Панель администратора', adminSubtitle: 'Управление пользователями, реестрами и вкладами',
+    guestTitle: 'Реестр по ссылке', guestSubtitle: 'Введите share token чтобы просмотреть реестр',
+    tabUsers: 'Пользователи', tabRegistries: 'Реестры', tabContributions: 'Вклады',
+  });
+
+  Object.assign(translations.en, {
+    heroSubtitle: 'Wedding gift registry rooted in Kazakh traditions',
+    startBtn: 'Get Started →',
+    feat1Title: 'Pool Gifts', feat1Desc: 'Guests contribute together toward one expensive gift with full tracking',
+    feat2Title: 'Kinship', feat2Desc: 'Ata-ana, tuys, zhien-zharan — suggested amounts by Kazakh tradition',
+    feat3Title: 'Multi-currency', feat3Desc: 'Exchange rate is locked at contribution time. USD, EUR, KZT',
+    feat4Title: 'Private Gifts', feat4Desc: 'Access control by kinship tier — only close relatives see private gifts',
+    feat5Title: 'Logistics', feat5Desc: 'Courier delivery via CHOCO and inDriver with fragile item support',
+    feat6Title: 'Notifications', feat6Desc: 'Culturally-aware notification timing — "kuttykau" at the right moment',
+    tabLogin: 'Sign In', tabRegister: 'Register', tabForgot: 'Reset Password',
+    loginBtn: 'Sign In', registerBtn: 'Create Account', forgotBtn: 'Send Reset Link',
+    emailPlaceholder: 'email@example.com', passwordPlaceholder: '••••••••', namePlaceholder: 'Full Name',
+    profileTitle: 'My Profile', profileSubtitle: 'Manage your account',
+    registriesTitle: 'My Registries', registriesSubtitle: 'Manage your wedding gift registries',
+    publishBtn: 'Publish', copyLinkBtn: 'Share Link',
+    kinshipTitle: 'Kinship', kinshipSubtitle: 'Set your relationship with the couple',
+    logisticsTitle: 'Logistics', notificationsTitle: 'Notifications',
+    adminTitle: 'Admin Panel', adminSubtitle: 'Manage users, registries and contributions',
+    guestTitle: 'Browse Registry', guestSubtitle: 'Enter share token to view a registry',
+    tabUsers: 'Users', tabRegistries: 'Registries', tabContributions: 'Contributions',
+  });
+
+  const phraseTranslations = {
+    ruToEn: {
+      'Имя': 'Name',
+      'О себе': 'About Me',
+      'Телефон': 'Phone',
+      'Город': 'City',
+      'Безопасность': 'Security',
+      'Запросить сброс пароля на email:': 'Request password reset by email:',
+      'Изменить пароль': 'Change Password',
+      'Сохранить профиль': 'Save Profile',
+      'Создать реестр': 'Create Registry',
+      'Название': 'Title',
+      'Дата свадьбы': 'Wedding Date',
+      'Описание': 'Description',
+      'Управлять →': 'Manage →',
+      'Добавить подарок': 'Add Gift',
+      'Цена (тенге)': 'Price (KZT)',
+      'Тип подарка': 'Gift Type',
+      'Категория': 'Category',
+      'SINGLE — один покупает': 'SINGLE — one buyer',
+      'POOL — все скидываются': 'POOL — group contribution',
+      'Приватный (только родственники tier 1-2)': 'Private (tier 1-2 relatives only)',
+      'Фото подарка': 'Gift Photos',
+      'Главное фото': 'Primary Photo',
+      'Показать фото': 'Show Photos',
+      'Реестр по ссылке': 'Browse Registry',
+      'Введите share token чтобы просмотреть реестр': 'Enter share token to view a registry',
+      'Открыть': 'Open',
+      'Мои приглашения': 'My Invitations',
+      'Загрузить': 'Load',
+      'Родство': 'Kinship',
+      'Укажите ваше родство с парой для рекомендации суммы': 'Set your relationship with the couple',
+      'Указать родство': 'Set Kinship',
+      'ID пары': 'Couple',
+      'Тип родства': 'Kinship Type',
+      'Установить родство': 'Set Kinship',
+      'Тиры родства': 'Kinship Tiers',
+      'Дерево родства': 'Family Tree',
+      'Загрузить дерево': 'Load Tree',
+      'Логистика': 'Logistics',
+      'Курьерская доставка подарков': 'Gift courier delivery',
+      'Создать заказ': 'Create Order',
+      'ID подарка': 'Gift',
+      'Провайдер': 'Provider',
+      'Адрес получения': 'Pickup Address',
+      'Адрес доставки': 'Delivery Address',
+      '(Fragile) Хрупкий предмет': '(Fragile) Fragile Item',
+      '(White Glove) Бережная доставка': '(White Glove) Careful handling',
+      'Заказы реестра': 'Registry Orders',
+      'Уведомления': 'Notifications',
+      'Прочитать все': 'Mark all read',
+      'Etiquette — Культурный тайминг': 'Etiquette — Cultural Timing',
+      'Проверить': 'Check',
+      'Панель администратора': 'Admin Panel',
+      'Управление пользователями, реестрами и вкладами': 'Manage users, registries and contributions',
+      'Пользователи': 'Users',
+      'Реестры': 'Registries',
+      'Вклады': 'Contributions',
+      'Обновить': 'Refresh',
+      'Все пользователи': 'All Users',
+      'Все реестры': 'All Registries',
+      'Все вклады': 'All Contributions',
+      'Нажмите "Обновить"': 'Click "Refresh"',
+      'Войти': 'Sign In',
+      'Регистрация': 'Register',
+      'Сброс пароля': 'Reset Password',
+      'Добро пожаловать': 'Welcome Back',
+      'Создать аккаунт': 'Create Account',
+      'Пароль': 'Password',
+      'Пароль (мин. 8 символов, буква + цифра)': 'Password (min. 8 chars, letter + number)',
+      'Вклад в подарок': 'Gift Contribution',
+      'Сумма в тенге': 'Amount in KZT',
+      'Валюта': 'Currency',
+      'Отмена': 'Cancel',
+      'Роль': 'Role',
+      'Гость': 'Guest',
+      'Пара (жених/невеста)': 'Couple (bride/groom)',
+      'Зарегистрироваться': 'Create Account',
+      'После регистрации проверьте email для подтверждения': 'After registration, check your email to verify your account',
+      'Отправить ссылку': 'Send Reset Link',
+      'Новый пароль': 'New Password',
+      'Подтвердите пароль': 'Confirm Password',
+      'Сохранить пароль': 'Save Password',
+      'Подтверждение email...': 'Email Verification...',
+      'Пожалуйста подождите': 'Please wait',
+      'Войти в систему': 'Sign In',
+      'Ссылка': 'Share Link',
+      'Копировать': 'Copy',
+      'Опубликовать': 'Publish',
+      'Удалить': 'Delete',
+      'Принять': 'Accept',
+      'Отказать': 'Decline',
+      'Смотреть подарки': 'View Gifts',
+      'Скинуться': 'Contribute',
+      'Забронировать': 'Reserve',
+      'Флаг': 'Flag',
+      'Оплачено': 'Paid',
+      'Закрыть': 'Close',
+      'Разблокировать': 'Unsuspend',
+      'Заблокировать': 'Suspend',
+      'Активен': 'Active',
+      'Заблокирован': 'Suspended',
+      'Все пользователи': 'All Users',
+      'Все реестры': 'All Registries',
+      'Все вклады': 'All Contributions',
+      'Пара': 'Couple',
+      'Название': 'Title',
+      'Гость': 'Guest',
+      'Подарок': 'Gift',
+      'Сумма': 'Amount',
+      'Статус': 'Status',
+      'Действия': 'Actions',
+      'Роль': 'Role',
+      'Всего:': 'Total:',
+      'Обновить статус...': 'Update status...',
+      'Хрупкий': 'Fragile',
+      'Да': 'Yes',
+      'Нет': 'No',
+      '(Fragile) Да': '(Fragile) Yes',
+      '(White Glove) Да': '(White Glove) Yes',
+      'Провайдер': 'Provider',
+      'Рек. сумма': 'Suggested Amount',
+      'Тип родства': 'Kinship Type',
+      'Реестр': 'Registry',
+      'Подарки': 'Gifts',
+      'Профиль': 'Profile',
+      'Главная': 'Home',
+      'Выйти': 'Sign Out',
+      'Выберите подарок...': 'Select gift...',
+      'Выберите реестр...': 'Select registry...',
+      'Выберите пару...': 'Select couple...',
+      'Расскажите о себе...': 'Tell us about yourself...',
+      'Расскажите гостям о вашей свадьбе...': 'Tell guests about your wedding...',
+      'Вставьте share token здесь...': 'Paste share token here...',
+      'URL фотографии': 'Photo URL',
+      'email гостя': 'guest email',
+      'Свадьба Асель и Данияра': 'Asel and Daniyar Wedding',
+      'дд.мм.гггг': 'dd.mm.yyyy',
+      'Алматы': 'Almaty',
+    }
+  };
+  phraseTranslations.enToRu = Object.fromEntries(
+    Object.entries(phraseTranslations.ruToEn).map(([ru, en]) => [en, ru])
+  );
+
+  function t(key) {
+    return translations[currentLang][key] || translations.ru[key] || key;
+  }
+
+  function toggleLang() {
+    currentLang = currentLang === 'ru' ? 'en' : 'ru';
+    localStorage.setItem('lang', currentLang);
+    document.getElementById('langToggle').textContent = currentLang === 'ru' ? 'EN' : 'RU';
+    applyTranslations();
+    updateNav();
+  }
+
+  function bindTranslations() {
+    const bindings = [
+      ['#auth-login .card-title', 'welcomeBack'],
+      ['#auth-register .card-title', 'createAccount'],
+      ['#auth-forgot .card-title', 'resetPassword'],
+      ['#page-registry .card-title', 'createRegistry'],
+      ['#page-gifts .card > .card-title', 'addGift'],
+      ['#page-guest #myInvitesCard .card-title', 'myInvites'],
+      ['#page-logistics .card .card-title', 'createOrder'],
+      ['#page-notifications .card-title', 'etiquetteTitle'],
+      ['#page-profile .card-title', 'security'],
+    ];
+    bindings.forEach(([selector, key]) => {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      el.setAttribute('data-t', key);
+    });
+  }
+
+  function applyTranslations() {
+    const lang = translations[currentLang];
+
+    document.getElementById('langToggle').textContent = currentLang === 'ru' ? 'EN' : 'RU';
+
+    setText('heroSubtitle', lang.heroSubtitle);
+    setText('startBtn', lang.startBtn);
+
+    setText('feat1Title', lang.feat1Title); setText('feat1Desc', lang.feat1Desc);
+    setText('feat2Title', lang.feat2Title); setText('feat2Desc', lang.feat2Desc);
+    setText('feat3Title', lang.feat3Title); setText('feat3Desc', lang.feat3Desc);
+    setText('feat4Title', lang.feat4Title); setText('feat4Desc', lang.feat4Desc);
+    setText('feat5Title', lang.feat5Title); setText('feat5Desc', lang.feat5Desc);
+    setText('feat6Title', lang.feat6Title); setText('feat6Desc', lang.feat6Desc);
+
+    setText('tab-login', lang.tabLogin);
+    setText('tab-register', lang.tabRegister);
+    setText('tab-forgot', lang.tabForgot);
+
+    setPlaceholder('loginEmail', lang.emailPlaceholder);
+    setPlaceholder('loginPassword', lang.passwordPlaceholder);
+    setPlaceholder('regName', lang.namePlaceholder);
+    setPlaceholder('regEmail', lang.emailPlaceholder);
+    setPlaceholder('regPassword', lang.passwordPlaceholder);
+    setPlaceholder('forgotEmail', lang.emailPlaceholder);
+
+    setText('loginSubmitBtn', lang.loginBtn);
+    setText('registerSubmitBtn', lang.registerBtn);
+    setText('forgotSubmitBtn', lang.forgotBtn);
+
+    setText('profilePageTitle', lang.profileTitle);
+    setText('profilePageSubtitle', lang.profileSubtitle);
+    setText('registriesPageTitle', lang.registriesTitle);
+    setText('registriesPageSubtitle', lang.registriesSubtitle);
+    setText('giftsPagePublishBtn', lang.publishBtn);
+    setText('giftsPageCopyBtn', lang.copyLinkBtn);
+    setText('kinshipPageTitle', lang.kinshipTitle);
+    setText('kinshipPageSubtitle', lang.kinshipSubtitle);
+    setText('logisticsPageTitle', lang.logisticsTitle);
+    setText('notificationsPageTitle', lang.notificationsTitle);
+    setText('adminPageTitle', lang.adminTitle);
+    setText('adminPageSubtitle', lang.adminSubtitle);
+    setText('guestPageTitle', lang.guestTitle);
+    setText('guestPageSubtitle', lang.guestSubtitle);
+
+    setText('atab-users', lang.tabUsers);
+    setText('atab-registries', lang.tabRegistries);
+    setText('atab-contributions', lang.tabContributions);
+
+    document.querySelectorAll('[data-t]').forEach(el => {
+      const key = el.getAttribute('data-t');
+      if (lang[key]) {
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+          el.placeholder = lang[key];
+        } else {
+          el.textContent = lang[key];
+        }
+      }
+    });
+    const shareTokenInput = document.getElementById('shareTokenInput');
+    if (shareTokenInput) shareTokenInput.placeholder = lang.enterToken;
+    translateAllVisibleText();
+  }
+
+  function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el && text) el.textContent = text;
+  }
+
+  function setPlaceholder(id, text) {
+    const el = document.getElementById(id);
+    if (el && text) el.placeholder = text;
+  }
+
+  function translatePhrase(text) {
+    if (!text) return text;
+    const leading = text.match(/^\s*/)[0];
+    const trailing = text.match(/\s*$/)[0];
+    const core = text.trim();
+    const dict = currentLang === 'en' ? phraseTranslations.ruToEn : phraseTranslations.enToRu;
+    return dict[core] ? `${leading}${dict[core]}${trailing}` : text;
+  }
+
+  function translateAllVisibleText() {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent || ['SCRIPT', 'STYLE', 'CODE'].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => { node.nodeValue = translatePhrase(node.nodeValue); });
+
+    document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+      el.placeholder = translatePhrase(el.placeholder);
+    });
+    document.querySelectorAll('option, button, label, th, td, p, span, div, h1, h2, h3, h4').forEach(el => {
+      if (el.children.length === 0 && el.textContent.trim()) {
+        el.textContent = translatePhrase(el.textContent);
+      }
+    });
+  }
+
+  let translationTimer = null;
+  function scheduleDynamicTranslation() {
+    if (currentLang !== 'en') return;
+    clearTimeout(translationTimer);
+    translationTimer = setTimeout(() => {
+      applyTranslations();
+    }, 50);
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────
+  window.addEventListener('click', e => {
+    if (e.target === document.getElementById('contributeModal')) closeModal();
+  });
+
+  // Проверяем URL параметры
+  const urlParams = new URLSearchParams(window.location.search);
+  const verifyToken = urlParams.get('token');
+  const resetToken = urlParams.get('reset');
+
+  bindTranslations();
+  applyTranslations();
+  updateNav();
+  const translationObserver = new MutationObserver(scheduleDynamicTranslation);
+  translationObserver.observe(document.body, { childList: true, subtree: true });
+
+  if (verifyToken) {
+    showPage('verify');
+    verifyEmailAuto(verifyToken);
+  } else if (resetToken) {
+    showPage('reset');
+  } else if (currentUser) {
+    if (currentUser.role === 'COUPLE') showPage('registry');
+    else if (currentUser.role === 'ADMIN') showPage('admin');
+    else showPage('guest');
+  }
+  applyTranslations();
 </script>
 </body>
 </html>

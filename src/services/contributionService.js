@@ -85,8 +85,32 @@ async function processWebhook(paymentRef, status) {
     if (status === 'SUCCESS') {
       const funded = await tx.contribution.findMany({ where: { giftId: contribution.giftId, status: 'FUNDED' } });
       const total = funded.reduce((sum, item) => sum + Number(item.amountKzt), 0);
+      const gift = await tx.gift.findUnique({
+        where: { id: contribution.giftId },
+        include: { registry: { select: { coupleId: true, title: true } } }
+      });
+
+      await tx.notification.create({
+        data: {
+          userId: gift.registry.coupleId,
+          type: 'CONTRIBUTION_FUNDED',
+          message: `Получен вклад ${contribution.amountKzt} ₸ на подарок "${gift.title}"`,
+          targetType: 'contribution',
+          targetId: contribution.id
+        }
+      });
+
       if (total >= Number(contribution.gift.priceKzt)) {
         await tx.gift.update({ where: { id: contribution.giftId }, data: { status: 'PURCHASED', purchasedAt: new Date() } });
+        await tx.notification.create({
+          data: {
+            userId: gift.registry.coupleId,
+            type: 'GIFT_FULLY_FUNDED',
+            message: `🎉 Подарок "${gift.title}" полностью собран! Можно заказывать доставку.`,
+            targetType: 'gift',
+            targetId: contribution.giftId
+          }
+        });
       }
     }
 
