@@ -71,7 +71,16 @@ async function getOrders(registryId) {
   return prisma.logisticsOrder.findMany({
     where: { registryId },
     orderBy: { createdAt: 'desc' },
-    include: { gift: { select: { title: true, isFragile: false } } },
+    include: {
+      gift: {
+        select: {
+          title: true,
+          priceKzt: true,
+          giftType: true,
+          status: true,
+        },
+      },
+    },
   });
 }
 
