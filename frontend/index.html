@@ -1224,6 +1224,9 @@
   let currentRegistryShareToken = null;
   let modalGiftId = null;
   let pendingVerificationEmail = '';
+  let isLoggingIn = false;
+  let isRegistering = false;
+  let isLoggingOut = false;
 
   // ── HELPERS ─────────────────────────────────────────────────
   async function api(method, path, body, auth = true) {
@@ -1327,6 +1330,8 @@
 
   // ── REGISTER ────────────────────────────────────────────────
   async function register() {
+    if (isRegistering) return;
+    isRegistering = true;
     try {
       pendingVerificationEmail = document.getElementById('regEmail').value.trim();
       await api('POST', '/auth/register', {
@@ -1338,10 +1343,13 @@
       showVerifyForm('', pendingVerificationEmail);
       showPage('verify');
     } catch (e) { showAlert('registerAlert', e.message); }
+    finally { isRegistering = false; }
   }
 
   // ── LOGIN ────────────────────────────────────────────────────
   async function login() {
+    if (isLoggingIn) return;
+    isLoggingIn = true;
     try {
       const data = await api('POST', '/auth/login', {
         email: document.getElementById('loginEmail').value,
@@ -1361,15 +1369,20 @@
       else if (currentUser.role === 'ADMIN') showPage('admin');
       else showPage('guest');
     } catch (e) { showAlert('loginAlert', e.message); }
+    finally { isLoggingIn = false; }
   }
 
   // ── LOGOUT ───────────────────────────────────────────────────
   async function logout() {
-    try { await api('POST', '/auth/logout', { refreshToken: refreshTokenVal }); } catch {}
-    accessToken = null; refreshTokenVal = null; currentUser = null;
-    localStorage.clear();
-    updateNav();
-    showPage('home');
+    if (isLoggingOut) return;
+    isLoggingOut = true;
+    try {
+      try { await api('POST', '/auth/logout', { refreshToken: refreshTokenVal }); } catch {}
+      accessToken = null; refreshTokenVal = null; currentUser = null;
+      localStorage.clear();
+      updateNav();
+      showPage('home');
+    } finally { isLoggingOut = false; }
   }
 
   // ── FORGOT PASSWORD ──────────────────────────────────────────
