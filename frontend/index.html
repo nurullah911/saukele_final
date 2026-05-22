@@ -2270,6 +2270,7 @@
 
   // ── LANGUAGE ─────────────────────────────────────────────────
   let currentLang = localStorage.getItem('lang') || 'ru';
+  let isTranslating = false;
 
   const translations = {
     ru: {
@@ -2579,6 +2580,9 @@
   }
 
   function applyTranslations() {
+    if (isTranslating) return;
+    isTranslating = true;
+    try {
     const lang = translations[currentLang];
 
     document.getElementById('langToggle').textContent = currentLang === 'ru' ? 'EN' : 'RU';
@@ -2640,6 +2644,9 @@
     const shareTokenInput = document.getElementById('shareTokenInput');
     if (shareTokenInput) shareTokenInput.placeholder = lang.enterToken;
     translateAllVisibleText();
+    } finally {
+      setTimeout(() => { isTranslating = false; }, 0);
+    }
   }
 
   function setText(id, text) {
@@ -2686,6 +2693,7 @@
 
   let translationTimer = null;
   function scheduleDynamicTranslation() {
+    if (isTranslating) return;
     if (currentLang !== 'en') return;
     clearTimeout(translationTimer);
     translationTimer = setTimeout(() => {
