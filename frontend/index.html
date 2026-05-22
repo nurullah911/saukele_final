@@ -1075,6 +1075,12 @@
       <div id="logisticsAlert" class="alert"></div>
       <div class="grid-2">
         <div class="form-group">
+          <label>Реестр</label>
+          <select id="logOrderRegistrySelect" onchange="handleLogisticsRegistryChange(this.value, true)">
+            <option value="">Выберите реестр...</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label>ID подарка</label>
           <select id="logGiftSelect">
             <option value="">Выберите подарок...</option>
@@ -1112,7 +1118,7 @@
     <div class="card">
       <div class="card-title">Заказы реестра</div>
       <div class="flex" style="margin-bottom:16px">
-        <select id="logRegistrySelect" style="max-width:220px">
+        <select id="logRegistrySelect" onchange="handleLogisticsRegistryChange(this.value, true)" style="max-width:220px">
           <option value="">Выберите реестр...</option>
         </select>
         <button class="btn btn-outline btn-sm" onclick="loadLogisticsOrders()" style="margin-top:0">Загрузить</button>
@@ -1803,12 +1809,18 @@
     try {
       // Load registries
       const regData = await api('GET', '/registries');
+      const registries = regData.data || [];
+      if (!currentRegistryId && registries.length) {
+        currentRegistryId = parseInt(registries[0].id, 10);
+      }
       const regSelect = document.getElementById('logRegistrySelect');
       regSelect.innerHTML = '<option value="">Выберите реестр...</option>' +
-        (regData.data || []).map(r => `<option value="${r.id}" ${r.id === currentRegistryId ? 'selected' : ''}>${r.title}</option>`).join('');
+        (regData.data || []).map(r => `<option value="${r.id}" ${parseInt(r.id, 10) === currentRegistryId ? 'selected' : ''}>${r.title}</option>`).join('');
+      const orderRegSelect = document.getElementById('logOrderRegistrySelect');
+      if (orderRegSelect) orderRegSelect.innerHTML = regSelect.innerHTML;
 
       // Load gifts for selected registry
-      const regId = currentRegistryId || (regData.data?.[0]?.id);
+      const regId = currentRegistryId;
       if (regId) {
         const giftData = await api('GET', `/registries/${regId}`);
         const giftSelect = document.getElementById('logGiftSelect');
@@ -1818,12 +1830,51 @@
     } catch (e) { console.error(e); }
   }
 
+  async function loadLogisticsGifts(registryId) {
+    const giftSelect = document.getElementById('logGiftSelect');
+    if (!giftSelect || !registryId) return;
+    const giftData = await api('GET', `/registries/${registryId}`);
+    giftSelect.innerHTML = '<option value="">Выберите подарок...</option>' +
+      (giftData.gifts || []).map(g => `<option value="${g.id}">${g.title} — ${formatKzt(g.priceKzt)}</option>`).join('');
+  }
+
+  function syncLogisticsRegistrySelects(registryId) {
+    ['logRegistrySelect', 'logOrderRegistrySelect'].forEach(id => {
+      const select = document.getElementById(id);
+      if (select) select.value = registryId || '';
+    });
+  }
+
+  async function handleLogisticsRegistryChange(value, shouldLoadOrders = false) {
+    const registryId = parseInt(value, 10);
+    if (!Number.isInteger(registryId)) return;
+    currentRegistryId = registryId;
+    syncLogisticsRegistrySelects(registryId);
+    try {
+      await loadLogisticsGifts(registryId);
+      if (shouldLoadOrders) await loadLogisticsOrders();
+    } catch (e) { showAlert('logisticsAlert', e.message); }
+  }
+
+  function getSelectedLogisticsRegistryId() {
+    const formValue = document.getElementById('logOrderRegistrySelect')?.value;
+    const listValue = document.getElementById('logRegistrySelect')?.value;
+    const registryId = parseInt(formValue || listValue || currentRegistryId, 10);
+    return Number.isInteger(registryId) ? registryId : null;
+  }
+
   async function createLogisticsOrder() {
     try {
-      const selectedRegistryId = document.getElementById('logRegistrySelect').value;
+      const registryId = getSelectedLogisticsRegistryId();
+      if (!registryId) {
+        showAlert('logisticsAlert', 'Выберите реестр перед созданием заказа.');
+        return;
+      }
+      currentRegistryId = registryId;
+      syncLogisticsRegistrySelects(registryId);
       await api('POST', '/logistics', {
         giftId: parseInt(document.getElementById('logGiftSelect').value),
-        registryId: parseInt(selectedRegistryId) || currentRegistryId,
+        registryId,
         courierProvider: document.getElementById('logProvider').value,
         pickupAddress: document.getElementById('logPickup').value,
         deliveryAddress: document.getElementById('logDelivery').value,
@@ -1836,8 +1887,10 @@
   }
 
   async function loadLogisticsOrders() {
-    const regId = document.getElementById('logRegistrySelect').value || currentRegistryId;
+    const regId = getSelectedLogisticsRegistryId();
     if (!regId) return;
+    currentRegistryId = regId;
+    syncLogisticsRegistrySelects(regId);
     try {
       const data = await api('GET', `/logistics/registry/${regId}`);
       const orders = Array.isArray(data) ? data : (data.data || []);
